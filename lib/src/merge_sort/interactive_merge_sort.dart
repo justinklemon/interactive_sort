@@ -42,7 +42,7 @@ class InteractiveMergeSort<T> implements InteractiveSort<T> {
   }
 
   @override
-  Stream<ChoicePair<T>> get itemStream => _choiceController.stream;
+  Stream<ChoicePair<T>> get choicePairStream => _choiceController.stream;
   @override
   Future<List<T>> get sortedList => _sortCompleter.future;
   @override

@@ -151,7 +151,6 @@ void main() {
       expect(() => sorter.onItemSelected(3), throwsArgumentError);
     });
 
-
     // Edge cases
     test('Empty list', () {
       final sorter = InteractiveSort.mergeSort([]);
@@ -199,14 +198,17 @@ void testSorting<T>(List<T> list, List<T> expected, Comparator<T> comparator) {
   final comparisonsFuture = countComparisons(sorter, comparator);
   final expectedComparisons = list.length * log(list.length);
   expectLater(sorter.sortedList, completion(expected));
-  expectLater(comparisonsFuture, completion(lessThanOrEqualTo(expectedComparisons + 1 + list.length / 10)));
+  expectLater(
+      comparisonsFuture,
+      completion(
+          lessThanOrEqualTo(expectedComparisons + 1 + list.length / 10)));
 }
 
 Future<int> countComparisons<T>(
     InteractiveSort<T> sorter, Comparator<T> comparator) {
   final completer = Completer<int>();
   int comparisons = 0;
-  sorter.itemStream.listen(
+  sorter.choicePairStream.listen(
     (pair) {
       comparisons++;
       sorter.onItemSelected(

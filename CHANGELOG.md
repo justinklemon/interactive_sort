@@ -39,7 +39,7 @@ final List<int> list = [3, 1, 4, 2];
 final sorter = InteractiveSort<int>.mergeSort(list);
 
 // Here is where you would actually present the items to the user and let them pick.
-sorter.itemStream.listen(
+sorter.choicePairStream.listen(
     (pair) {
       comparisons++;
       sorter.onItemSelected(

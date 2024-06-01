@@ -7,7 +7,7 @@ typedef ToJson<T> = Map<String, dynamic> Function(T item);
 typedef FromJson<T> = T Function(Map<String, dynamic> json);
 
 abstract interface class InteractiveSort<T> {
-  Stream<ChoicePair<T>> get itemStream;
+  Stream<ChoicePair<T>> get choicePairStream;
   Future<List<T>> get sortedList;
   ToJson<T>? get listItemToJson;
   bool get isSorted;
