@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
@@ -62,16 +63,19 @@ void main() {
         expect(() => InteractiveSort<_TestPerson>.mergeSortFromJson(json),
             throwsStateError);
 
-        final sorterFromJson = InteractiveSort<_TestPerson>.mergeSortFromJson(json,
+        final sorterFromJson = InteractiveSort<_TestPerson>.mergeSortFromJson(
+            json,
             listItemFromJson: (json) => _TestPerson(json['name'], json['age']));
         expect(sorterFromJson.isSorted, false);
       });
-      test('InteractiveSort.mergeSortFromJsonString() recreates a valid instance',
+      test(
+          'InteractiveSort.mergeSortFromJsonString() recreates a valid instance',
           () {
         final list = [3, 1, 4, 2];
         final sorter = InteractiveSort.mergeSort(list);
         final jsonString = sorter.toJsonString();
-        final sorterFromJson = InteractiveSort.mergeSortFromJsonString(jsonString);
+        final sorterFromJson =
+            InteractiveSort.mergeSortFromJsonString(jsonString);
 
         expect(sorterFromJson.isSorted, false);
       });
@@ -81,7 +85,8 @@ void main() {
         final list = ['c', 'a', 'd', 'b'];
         final sorter = InteractiveSort.mergeSort(list);
         final jsonString = jsonEncode(sorter.toJson());
-        final sorterFromJson = InteractiveSort.mergeSortFromJsonString(jsonString);
+        final sorterFromJson =
+            InteractiveSort.mergeSortFromJsonString(jsonString);
 
         expect(sorterFromJson.isSorted, false);
       });
@@ -101,11 +106,15 @@ void main() {
             (person) => {'name': person.name, 'age': person.age};
         final jsonString = sorter.toJsonString();
         expect(
-            () => InteractiveSort<_TestPerson>.mergeSortFromJsonString(jsonString),
+            () => InteractiveSort<_TestPerson>.mergeSortFromJsonString(
+                jsonString),
             throwsStateError);
 
-        final sorterFromJson = InteractiveSort<_TestPerson>.mergeSortFromJsonString(jsonString,
-            listItemFromJson: (json) => _TestPerson(json['name'], json['age']));
+        final sorterFromJson =
+            InteractiveSort<_TestPerson>.mergeSortFromJsonString(
+                jsonString,
+                listItemFromJson: (json) =>
+                    _TestPerson(json['name'], json['age']));
         expect(sorterFromJson.isSorted, false);
       });
 
@@ -120,28 +129,12 @@ void main() {
 
     // Sorting logic
     test('onItemSelected() progresses through the sort correctly', () {
-      final list = [3, 1, 4, 2];
-      final sorter = InteractiveSort.mergeSort(list);
-
-      while (!sorter.isSorted) {
-        sorter.onItemSelected(sorter.leftItem <= sorter.rightItem
-            ? sorter.leftItem
-            : sorter.rightItem);
-      }
-
-      expect(sorter.sortedList, [1, 2, 3, 4]);
-      expect(() => sorter.onItemSelected(0), throwsStateError);
+      testSorting([3, 1, 4, 2], [1, 2, 3, 4], (a, b) => a.compareTo(b));
     });
 
     test('Duplicate items', () {
-      final sorter = InteractiveSort.mergeSort([2, 3, 3, 1, 4, 2]);
-      while (!sorter.isSorted) {
-        sorter.onItemSelected(sorter.leftItem <= sorter.rightItem
-            ? sorter.leftItem
-            : sorter.rightItem);
-      }
-
-      expect(sorter.sortedList, [1, 2, 2, 3, 3, 4]);
+      testSorting(
+          [2, 3, 3, 1, 4, 2], [1, 2, 2, 3, 3, 4], (a, b) => a.compareTo(b));
     });
 
     /// Handling StateError in onItemSelected
@@ -158,33 +151,12 @@ void main() {
       expect(() => sorter.onItemSelected(3), throwsArgumentError);
     });
 
-    /// Handling StateError in sortedList Getter Throughout the Sorting Process
-    test('sortedList throws StateError before the list is sorted', () {
-      final list = [3, 1, 4, 2];
-      final sorter = InteractiveSort.mergeSort(list);
 
-      // Should throw an error at the beginning since it is not sorted.
-      expect(() => sorter.sortedList, throwsStateError);
-
-      // Sort the list partially - it should still throw an error as we are not done
-      sorter.onItemSelected(sorter.leftItem <= sorter.rightItem
-          ? sorter.leftItem
-          : sorter.rightItem);
-      expect(() => sorter.sortedList, throwsStateError);
-
-      // Finish sorting the list and verify the getter works
-      while (!sorter.isSorted) {
-        sorter.onItemSelected(sorter.leftItem <= sorter.rightItem
-            ? sorter.leftItem
-            : sorter.rightItem);
-      }
-      expect(sorter.sortedList, [1, 2, 3, 4]);
-    });
     // Edge cases
     test('Empty list', () {
       final sorter = InteractiveSort.mergeSort([]);
       expect(sorter.isSorted, true);
-      expect(sorter.sortedList, []);
+      expectLater(sorter.sortedList, completion(equals([])));
 
       // Should throw a StateError as the list is already sorted
       expect(() => sorter.onItemSelected(0), throwsStateError);
@@ -193,7 +165,7 @@ void main() {
     test('List with one item', () {
       final sorter = InteractiveSort.mergeSort([5]);
       expect(sorter.isSorted, true);
-      expect(sorter.sortedList, [5]);
+      expectLater(sorter.sortedList, completion(equals([5])));
 
       // Should throw a StateError as the list is already sorted
       expect(() => sorter.onItemSelected(5), throwsStateError);
@@ -201,21 +173,7 @@ void main() {
 
     test('Very large list sorts correctly and efficiently', () {
       final largeList = List.generate(10000, (i) => Random().nextInt(100000));
-      final sorter = InteractiveSort.mergeSort(largeList);
-      final stopwatch = Stopwatch()..start();
-
-      while (!sorter.isSorted) {
-        sorter.onItemSelected(sorter.leftItem <= sorter.rightItem
-            ? sorter.leftItem
-            : sorter.rightItem);
-      }
-
-      expect(
-          sorter.sortedList,
-          largeList
-            ..sort()); // Using the isSorted matcher from the test package
-      print(
-          'Sorting took ${stopwatch.elapsed}'); // Optional for performance analysis.
+      testSorting(largeList, largeList..sort(), (a, b) => a.compareTo(b));
     });
 
     test('Sorting custom objects', () {
@@ -224,23 +182,39 @@ void main() {
         _TestPerson('Zoe', 25),
         _TestPerson('Bob', 40),
       ];
-
-      final sorter = InteractiveSort.mergeSort(people);
-
-      // Assuming comparison is based on age
-      while (!sorter.isSorted) {
-        sorter.onItemSelected(sorter.leftItem.age <= sorter.rightItem.age
-            ? sorter.leftItem
-            : sorter.rightItem);
-      }
-
-      expect(sorter.sortedList, [
-        _TestPerson('Zoe', 25),
-        _TestPerson('Alice', 30),
-        _TestPerson('Bob', 40),
-      ]);
+      testSorting(
+          people,
+          [
+            _TestPerson('Zoe', 25),
+            _TestPerson('Alice', 30),
+            _TestPerson('Bob', 40),
+          ],
+          (a, b) => a.age.compareTo(b.age));
     });
   });
+}
+
+void testSorting<T>(List<T> list, List<T> expected, Comparator<T> comparator) {
+  final sorter = InteractiveSort.mergeSort(list);
+  final comparisonsFuture = countComparisons(sorter, comparator);
+  final expectedComparisons = list.length * log(list.length);
+  expectLater(sorter.sortedList, completion(expected));
+  expectLater(comparisonsFuture, completion(lessThanOrEqualTo(expectedComparisons + 1 + list.length / 10)));
+}
+
+Future<int> countComparisons<T>(
+    InteractiveSort<T> sorter, Comparator<T> comparator) {
+  final completer = Completer<int>();
+  int comparisons = 0;
+  sorter.itemStream.listen(
+    (pair) {
+      comparisons++;
+      sorter.onItemSelected(
+          comparator(pair.left, pair.right) <= 0 ? pair.left : pair.right);
+    },
+    onDone: () => completer.complete(comparisons),
+  );
+  return completer.future;
 }
 
 class _TestPerson {

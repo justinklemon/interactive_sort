@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:async';
 
+import '../choice_pair.dart';
 import '../interactive_sort_interface.dart';
 import 'merge_sort_step.dart';
 import 'node_type.dart';
@@ -8,16 +10,28 @@ const String listKey = 'list';
 const String stepsKey = 'steps';
 const String currentStepIndexKey = 'currentStepIndex';
 
-class InteractiveMergeSort<T> implements InteractiveSort<T>{
+class InteractiveMergeSort<T> implements InteractiveSort<T> {
   final List<T> _list;
   final Map<int, MergeSortStep> _steps;
   MergeSortStep _currentStep;
   @override
   ToJson<T>? listItemToJson;
+  final StreamController<ChoicePair<T>> _choiceController =
+      StreamController<ChoicePair<T>>();
+  final Completer<List<T>> _sortCompleter = Completer<List<T>>();
+  bool _disposed = false;
 
   InteractiveMergeSort._(List<T> list, this._steps, this._currentStep,
       {this.listItemToJson})
-      : _list = List.unmodifiable(list);
+      : _list = List.unmodifiable(list) {
+    if (_currentStep.isSorted) {
+      _sortCompleter.complete(
+          _currentStep.sortedIndicesList.map((index) => _list[index]).toList());
+      _choiceController.close();
+    } else {
+      _addItemsToStreams();
+    }
+  }
 
   factory InteractiveMergeSort(List<T> list, {ToJson<T>? listItemToJson}) {
     Map<int, MergeSortStep> steps = MergeSortStep.generateTree(list: list);
@@ -28,19 +42,22 @@ class InteractiveMergeSort<T> implements InteractiveSort<T>{
   }
 
   @override
-  bool get isSorted =>
-      _currentStep.nodeType == NodeType.root && _currentStep.isSorted;
+  Stream<ChoicePair<T>> get itemStream => _choiceController.stream;
   @override
-  bool get isNotSorted => !isSorted;
-
+  Future<List<T>> get sortedList => _sortCompleter.future;
   @override
-  T get leftItem => _list[_currentStep.leftItemIndex];
-
+  bool get isSorted => _sortCompleter.isCompleted;
   @override
-  T get rightItem => _list[_currentStep.rightItemIndex];
+  bool get isNotSorted => !_sortCompleter.isCompleted;
 
   @override
   void onItemSelected(T selectedItem) {
+    if (_disposed) {
+      throw StateError('InteractiveMergeSort has been disposed');
+    }
+    if (_sortCompleter.isCompleted) {
+      throw StateError('Sorting is already complete');
+    }
     T leftItem = _list[_currentStep.leftItemIndex];
     T rightItem = _list[_currentStep.rightItemIndex];
     if (selectedItem == leftItem) {
@@ -56,13 +73,20 @@ class InteractiveMergeSort<T> implements InteractiveSort<T>{
       _steps.remove(_currentStep.stepIndex);
       _updateCurrentStep();
     }
-  }
-  @override
-  List<T> get sortedList {
-    if (!isSorted) {
-      throw StateError('List is not sorted yet');
+
+    if (_currentStep.isSorted && _currentStep.nodeType == NodeType.root) {
+      _sortCompleter.complete(
+          _currentStep.sortedIndicesList.map((index) => _list[index]).toList());
+      _choiceController.close();
+    } else {
+      _addItemsToStreams();
     }
-    return _currentStep.sortedIndicesList.map((index) => _list[index]).toList();
+  }
+
+  void _addItemsToStreams() {
+    T leftItem = _list[_currentStep.leftItemIndex];
+    T rightItem = _list[_currentStep.rightItemIndex];
+    _choiceController.add(ChoicePair(leftItem, rightItem));
   }
 
   void _updateCurrentStep() {
@@ -95,9 +119,19 @@ class InteractiveMergeSort<T> implements InteractiveSort<T>{
       currentStepIndexKey: _currentStep.stepIndex,
     };
   }
+
   @override
   String toJsonString() {
     return jsonEncode(toJson());
+  }
+
+  @override
+  void dispose() {
+    if (_disposed) {
+      throw StateError('InteractiveMergeSort has already been disposed');
+    }
+    _choiceController.close();
+    _disposed = true;
   }
 
   factory InteractiveMergeSort.fromJson(Map<String, dynamic> json,

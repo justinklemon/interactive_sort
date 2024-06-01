@@ -38,13 +38,15 @@ final List<int> list = [3, 1, 4, 2];
 final sorter = InteractiveSort<int>.mergeSort(list);
 
 // Here is where you would actually present the items to the user and let them pick.
-while(list.isNotSorted){
-    sorter.onItemSelected(sorter.leftItem <= sorter.rightItem
-        ? sorter.leftItem
-        : sorter.rightItem);
-}
+sorter.itemStream.listen(
+    (pair) {
+      comparisons++;
+      sorter.onItemSelected(
+          comparator(pair.left, pair.right) <= 0 ? pair.left : pair.right);
+    },
+  );
 
-print(sorter.sortedList)    // Prints: [1, 2, 3, 4]
+sorter.sortedList.then((list) => print(list));   // Prints: [1, 2, 3, 4]
 ```
 
 If your items can be sorted as easily as this example, then this package is not for you. Use this when you need to decide between complex preferences, like your favorite movie or the best pizza place in town.

@@ -26,3 +26,26 @@ print(sorter.sortedList)    // Prints: [1, 2, 3, 4]
 If you need to preserve the sorting state at any point, you can do so using either the `toJson` or `toJsonString` functions. 
 
 There are also associated constructors to resume sorting: `mergeSortFromJson` and `mergeSortFromJsonString`.
+
+## 0.0.2
+Refactored the InteractiveSort class to use a stream of `ChoicePair` objects instead of leftItem/rightItem getters. 
+The `sortedList` function now returns a future and will not throw an error.
+Calling `onItemSelected` with an item that is not from the most recent `ChoicePair` or after the sorting is complete will still throw a `StateError`.
+
+Example: 
+```dart
+// Create sorter
+final List<int> list = [3, 1, 4, 2];
+final sorter = InteractiveSort<int>.mergeSort(list);
+
+// Here is where you would actually present the items to the user and let them pick.
+sorter.itemStream.listen(
+    (pair) {
+      comparisons++;
+      sorter.onItemSelected(
+          comparator(pair.left, pair.right) <= 0 ? pair.left : pair.right);
+    },
+  );
+
+sorter.sortedList.then((list) => print(list));   // Prints: [1, 2, 3, 4]
+```
