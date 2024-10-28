@@ -49,3 +49,8 @@ sorter.choicePairStream.listen(
 
 sorter.sortedList.then((list) => print(list));   // Prints: [1, 2, 3, 4]
 ```
+
+## 0.0.3
+Refactored the dispose method to not throw an error if it is already disposed, instead it just does nothing.
+When disposed, the future now completes with an error if it is not already completed.
+The interface now also exposes an `isDisposed` getter.

@@ -191,6 +191,25 @@ void main() {
           (a, b) => a.age.compareTo(b.age));
     });
   });
+
+  group('disposal tests', () {
+    test('dispose() cancels the stream', () {
+      final sorter = InteractiveSort.mergeSort([3, 1, 4, 2]);
+      sorter.dispose();
+      expect(sorter.isDisposed, true);
+      // Expect that the future completes with an error
+      expectLater(sorter.sortedList, throwsStateError);
+      expect(() => sorter.onItemSelected(1), throwsStateError);
+    });
+
+    test('dispose() cancels the stream even if sorting is complete', () {
+      final sorter = InteractiveSort.mergeSort([1]);
+      expect(sorter.isSorted, true);
+      expect(sorter.isDisposed, true);
+      sorter.dispose();
+      expect(sorter.isDisposed, true);
+    });
+  });
 }
 
 void testSorting<T>(List<T> list, List<T> expected, Comparator<T> comparator) {

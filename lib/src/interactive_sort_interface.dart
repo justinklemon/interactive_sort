@@ -21,6 +21,8 @@ abstract interface class InteractiveSort<T> {
 
   void dispose();
 
+  bool get isDisposed;
+
   factory InteractiveSort.mergeSort(List<T> list, {ToJson<T>? listItemToJson}) {
     return InteractiveMergeSort<T>(list, listItemToJson: listItemToJson);
   }

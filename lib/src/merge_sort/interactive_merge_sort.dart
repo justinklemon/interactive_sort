@@ -27,7 +27,7 @@ class InteractiveMergeSort<T> implements InteractiveSort<T> {
     if (_currentStep.isSorted) {
       _sortCompleter.complete(
           _currentStep.sortedIndicesList.map((index) => _list[index]).toList());
-      _choiceController.close();
+      dispose();
     } else {
       _addItemsToStreams();
     }
@@ -77,7 +77,7 @@ class InteractiveMergeSort<T> implements InteractiveSort<T> {
     if (_currentStep.isSorted && _currentStep.nodeType == NodeType.root) {
       _sortCompleter.complete(
           _currentStep.sortedIndicesList.map((index) => _list[index]).toList());
-      _choiceController.close();
+      dispose();
     } else {
       _addItemsToStreams();
     }
@@ -127,12 +127,18 @@ class InteractiveMergeSort<T> implements InteractiveSort<T> {
 
   @override
   void dispose() {
-    if (_disposed) {
-      throw StateError('InteractiveMergeSort has already been disposed');
-    }
+    if (_disposed) return;
+    
     _choiceController.close();
+    if (!_sortCompleter.isCompleted) {
+      _sortCompleter.completeError(StateError(
+          'InteractiveMergeSort disposed before sorting was completed'));
+    }
     _disposed = true;
   }
+
+  @override
+  bool get isDisposed => _disposed;
 
   factory InteractiveMergeSort.fromJson(Map<String, dynamic> json,
       {FromJson<T>? listItemFromJson}) {
