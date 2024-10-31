@@ -1,6 +1,6 @@
 name: interactive_sort
 description: 'A package that allows you to efficiently sort a list of items according to user preference.'
-version: 0.0.3
+version: 0.0.4
 homepage:
 
 environment:

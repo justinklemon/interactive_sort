@@ -5,37 +5,22 @@ import 'merge_sort/interactive_merge_sort.dart';
 
 typedef ToJson<T> = Map<String, dynamic> Function(T item);
 typedef FromJson<T> = T Function(Map<String, dynamic> json);
+typedef ChoiceResult<T> = Map<ChoicePair<T>, T>;
 
 abstract interface class InteractiveSort<T> {
   Stream<ChoicePair<T>> get choicePairStream;
   Future<List<T>> get sortedList;
-  ToJson<T>? get listItemToJson;
   bool get isSorted;
   bool get isNotSorted;
-  set listItemToJson(ToJson<T>? value);
+  Map<ChoicePair<T>, T> get choiceHistory;
 
   void onItemSelected(T item);
-
-  Map<String, dynamic> toJson();
-  String toJsonString();
 
   void dispose();
 
   bool get isDisposed;
 
-  factory InteractiveSort.mergeSort(List<T> list, {ToJson<T>? listItemToJson}) {
-    return InteractiveMergeSort<T>(list, listItemToJson: listItemToJson);
-  }
-
-  factory InteractiveSort.mergeSortFromJson(Map<String, dynamic> json,
-      {FromJson<T>? listItemFromJson}) {
-    return InteractiveMergeSort<T>.fromJson(json,
-        listItemFromJson: listItemFromJson);
-  }
-
-  factory InteractiveSort.mergeSortFromJsonString(String jsonString,
-      {FromJson<T>? listItemFromJson}) {
-    return InteractiveMergeSort<T>.fromJsonString(jsonString,
-        listItemFromJson: listItemFromJson);
+  factory InteractiveSort.mergeSort(List<T> list, {Map<ChoicePair<T>, T>? choiceHistory}) {
+    return InteractiveMergeSort<T>(list, choiceHistory: choiceHistory);
   }
 }

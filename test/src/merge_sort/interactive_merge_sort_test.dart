@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -15,115 +14,87 @@ void main() {
 
         // Can't access private members but we can check public facing properties
         expect(sorter.isSorted, false);
-        expect(sorter.listItemToJson, isNull);
+        expect(sorter.choiceHistory, isEmpty);
       });
-      test('listItemToJson', () {
-        final sorter = InteractiveSort.mergeSort([], listItemToJson: (_) => {});
 
-        expect(sorter.listItemToJson, isNotNull);
+      test('InteractiveSort.mergeSort() with a choice history works', () {
+        final list = [3, 1, 4, 2];
+        final choiceHistory = {
+          const ChoicePair(1, 2): 1,
+          const ChoicePair(3, 4): 3,
+        };
+        final sorter =
+            InteractiveSort.mergeSort(list, choiceHistory: choiceHistory);
+
+        expect(sorter.choiceHistory, equals(choiceHistory));
       });
     });
 
-    group('Serialization tests', () {
-      test(
-          'InteractiveSort.mergeSortFromJson() recreates a valid instance (List<int>)',
-          () {
-        // Serialize then deserialize, then check a known property
+    group('Choice history', () {
+      test('Choice history is updated correctly', () async {
         final list = [3, 1, 4, 2];
         final sorter = InteractiveSort.mergeSort(list);
-        final json = sorter.toJson();
-        final sorterFromJson = InteractiveSort.mergeSortFromJson(json);
 
-        expect(sorterFromJson.isSorted, false);
+        Map<ChoicePair<int>, int> history = {};
+        sorter.choicePairStream.listen((pair) {
+          int chosen = pair.left < pair.right ? pair.left : pair.right;
+          history[pair] = chosen;
+          sorter.onItemSelected(chosen);
+          expect(sorter.choiceHistory, equals(history));
+        });
+        await sorter.sortedList;
+        expect(sorter.choiceHistory, equals(history));
       });
-      test(
-          'InteractiveSort.mergeSortFromJson() recreates a valid instance (List<String>)',
-          () {
-        final list = ['c', 'a', 'd', 'b'];
-        final sorter = InteractiveSort.mergeSort(list);
-        final json = sorter.toJson();
-        final sorterFromJson = InteractiveSort.mergeSortFromJson(json);
 
-        expect(sorterFromJson.isSorted, false);
+      test('Choice history is used, 2 items', () async {
+        final list = [3, 1];
+        final choiceHistory = {
+          const ChoicePair(1, 3): 1,
+        };
+        final sorter =
+            InteractiveSort.mergeSort(list, choiceHistory: choiceHistory);
+
+        expect(sorter.isSorted, true);
+        expectLater(sorter.sortedList, completion(equals([1, 3])));
       });
-      test(
-          'InteractiveSort.mergeSortFromJson() recreates a valid instance (List<CustomObject>)',
-          () {
-        final people = [
-          _TestPerson('Alice', 30),
-          _TestPerson('Zoe', 25),
-          _TestPerson('Bob', 40),
-        ];
-        final sorter = InteractiveSort.mergeSort(people);
-        expect(() => sorter.toJson(), throwsStateError);
 
-        sorter.listItemToJson =
-            (person) => {'name': person.name, 'age': person.age};
-        final json = sorter.toJson();
-        expect(() => InteractiveSort<_TestPerson>.mergeSortFromJson(json),
-            throwsStateError);
-
-        final sorterFromJson = InteractiveSort<_TestPerson>.mergeSortFromJson(
-            json,
-            listItemFromJson: (json) => _TestPerson(json['name'], json['age']));
-        expect(sorterFromJson.isSorted, false);
+      test('Choice history is used, 3 items', () async {
+        final list = [3, 1, 4];
+        final choiceHistory = {
+          const ChoicePair(1, 3): 1,
+          const ChoicePair(1, 4): 1,
+        };
+        final sorter =
+            InteractiveSort.mergeSort(list, choiceHistory: choiceHistory);
+        sorter.choicePairStream.listen((pair) {
+          int chosen = pair.left < pair.right ? pair.left : pair.right;
+          // Expect that the choiceHistory does not contain this pair
+          expect(sorter.choiceHistory.containsKey(pair), false);
+          sorter.onItemSelected(chosen);
+        });
+        await sorter.sortedList;
+        expect(sorter.isSorted, true);
+        expectLater(sorter.sortedList, completion(equals([1, 3, 4])));
       });
-      test(
-          'InteractiveSort.mergeSortFromJsonString() recreates a valid instance',
-          () {
+
+      test('Choice history is used, 4 items', () async {
         final list = [3, 1, 4, 2];
-        final sorter = InteractiveSort.mergeSort(list);
-        final jsonString = sorter.toJsonString();
-        final sorterFromJson =
-            InteractiveSort.mergeSortFromJsonString(jsonString);
-
-        expect(sorterFromJson.isSorted, false);
-      });
-      test(
-          'InteractiveSort.mergeSortFromJsonString() recreates a valid instance (List<String>)',
-          () {
-        final list = ['c', 'a', 'd', 'b'];
-        final sorter = InteractiveSort.mergeSort(list);
-        final jsonString = jsonEncode(sorter.toJson());
-        final sorterFromJson =
-            InteractiveSort.mergeSortFromJsonString(jsonString);
-
-        expect(sorterFromJson.isSorted, false);
-      });
-
-      test(
-          'InteractiveSort.mergeSortFromJsonString() recreates a valid instance (List<CustomObject>)',
-          () {
-        final people = [
-          _TestPerson('Alice', 30),
-          _TestPerson('Zoe', 25),
-          _TestPerson('Bob', 40),
-        ];
-        final sorter = InteractiveSort.mergeSort(people);
-        expect(() => sorter.toJsonString(), throwsStateError);
-
-        sorter.listItemToJson =
-            (person) => {'name': person.name, 'age': person.age};
-        final jsonString = sorter.toJsonString();
-        expect(
-            () => InteractiveSort<_TestPerson>.mergeSortFromJsonString(
-                jsonString),
-            throwsStateError);
-
-        final sorterFromJson =
-            InteractiveSort<_TestPerson>.mergeSortFromJsonString(
-                jsonString,
-                listItemFromJson: (json) =>
-                    _TestPerson(json['name'], json['age']));
-        expect(sorterFromJson.isSorted, false);
-      });
-
-      test('Invalid JSON input', () {
-        const invalidJson =
-            '{ "list": [1, 2, 3], "steps": { "1": { ... } } "missingClosingBracket }';
-
-        expect(() => InteractiveSort.mergeSortFromJson(jsonDecode(invalidJson)),
-            throwsA(isA<FormatException>()));
+        final choiceHistory = {
+          const ChoicePair(1, 3): 1,
+          const ChoicePair(1, 4): 1,
+          const ChoicePair(1, 2): 1,
+        };
+        final sorter =
+            InteractiveSort.mergeSort(list, choiceHistory: choiceHistory);
+        sorter.choicePairStream.listen((pair) {
+          int chosen = pair.left < pair.right ? pair.left : pair.right;
+          // Expect that the choiceHistory does not contain this pair
+          expect(sorter.choiceHistory.containsKey(pair), false);
+          sorter.onItemSelected(chosen);
+        });
+        await sorter.sortedList;
+        expect(sorter.isSorted, true);
+        expectLater(sorter.sortedList, completion(equals([1, 2, 3, 4])));
       });
     });
 

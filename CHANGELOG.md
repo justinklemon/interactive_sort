@@ -54,3 +54,9 @@ sorter.sortedList.then((list) => print(list));   // Prints: [1, 2, 3, 4]
 Refactored the dispose method to not throw an error if it is already disposed, instead it just does nothing.
 When disposed, the future now completes with an error if it is not already completed.
 The interface now also exposes an `isDisposed` getter.
+
+## 0.0.4
+Refactored to remove the toJson/fromJson methods as they were needlessly complex. Instead, the sorter now
+accepts a map of `ChoicePair` objects to the choice. It also tracks each choice the user makes and allows 
+you to retrieve the full map at any point. This will allow you to save the choice history when you stop
+sorting for any reason.

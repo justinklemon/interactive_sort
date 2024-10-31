@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:async';
 
 import '../choice_pair.dart';
@@ -12,18 +11,18 @@ const String currentStepIndexKey = 'currentStepIndex';
 
 class InteractiveMergeSort<T> implements InteractiveSort<T> {
   final List<T> _list;
+  final Map<ChoicePair<T>, T> _choiceHistory;
   final Map<int, MergeSortStep> _steps;
-  MergeSortStep _currentStep;
-  @override
-  ToJson<T>? listItemToJson;
   final StreamController<ChoicePair<T>> _choiceController =
       StreamController<ChoicePair<T>>();
   final Completer<List<T>> _sortCompleter = Completer<List<T>>();
+  MergeSortStep _currentStep;
   bool _disposed = false;
 
   InteractiveMergeSort._(List<T> list, this._steps, this._currentStep,
-      {this.listItemToJson})
-      : _list = List.unmodifiable(list) {
+      {Map<ChoicePair<T>, T>? choiceHistory})
+      : _list = List.unmodifiable(list),
+        _choiceHistory = Map.from(choiceHistory ?? {}) {
     if (_currentStep.isSorted) {
       _sortCompleter.complete(
           _currentStep.sortedIndicesList.map((index) => _list[index]).toList());
@@ -33,12 +32,13 @@ class InteractiveMergeSort<T> implements InteractiveSort<T> {
     }
   }
 
-  factory InteractiveMergeSort(List<T> list, {ToJson<T>? listItemToJson}) {
+  factory InteractiveMergeSort(List<T> list,
+      {Map<ChoicePair<T>, T>? choiceHistory}) {
     Map<int, MergeSortStep> steps = MergeSortStep.generateTree(list: list);
     int currentStepIndex = steps.keys.reduce((a, b) => a > b ? a : b);
     MergeSortStep currentStep = steps[currentStepIndex]!;
     return InteractiveMergeSort._(list, steps, currentStep,
-        listItemToJson: listItemToJson);
+        choiceHistory: choiceHistory);
   }
 
   @override
@@ -49,6 +49,8 @@ class InteractiveMergeSort<T> implements InteractiveSort<T> {
   bool get isSorted => _sortCompleter.isCompleted;
   @override
   bool get isNotSorted => !_sortCompleter.isCompleted;
+  @override
+  Map<ChoicePair<T>, T> get choiceHistory => Map.from(_choiceHistory);
 
   @override
   void onItemSelected(T selectedItem) {
@@ -60,10 +62,13 @@ class InteractiveMergeSort<T> implements InteractiveSort<T> {
     }
     T leftItem = _list[_currentStep.leftItemIndex];
     T rightItem = _list[_currentStep.rightItemIndex];
+    ChoicePair<T> choicePair = ChoicePair(leftItem, rightItem);
     if (selectedItem == leftItem) {
       _currentStep.selectLeftItem();
+      _choiceHistory[choicePair] = leftItem;
     } else if (selectedItem == rightItem) {
       _currentStep.selectRightItem();
+      _choiceHistory[choicePair] = rightItem;
     } else {
       throw ArgumentError('Invalid item selected');
     }
@@ -86,6 +91,12 @@ class InteractiveMergeSort<T> implements InteractiveSort<T> {
   void _addItemsToStreams() {
     T leftItem = _list[_currentStep.leftItemIndex];
     T rightItem = _list[_currentStep.rightItemIndex];
+    T? previousChoice = _choiceHistory[ChoicePair(leftItem, rightItem)];
+    if (previousChoice != null) {
+      onItemSelected(previousChoice);
+      return;
+    }
+    // Only add items to the stream if they haven't been selected before
     _choiceController.add(ChoicePair(leftItem, rightItem));
   }
 
@@ -98,37 +109,9 @@ class InteractiveMergeSort<T> implements InteractiveSort<T> {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    List<dynamic> listJson;
-    if (listItemToJson != null) {
-      listJson = _list.map((item) => listItemToJson!(item)).toList();
-    } else {
-      try {
-        jsonEncode(_list);
-      } catch (e) {
-        throw StateError(
-            'List could not be converted to JSON. Try providing a custom listItemToJson function for the list items.');
-      }
-      listJson = _list;
-    }
-    final steps =
-        _steps.map((key, value) => MapEntry(key.toString(), value.toJson()));
-    return {
-      listKey: listJson,
-      stepsKey: steps,
-      currentStepIndexKey: _currentStep.stepIndex,
-    };
-  }
-
-  @override
-  String toJsonString() {
-    return jsonEncode(toJson());
-  }
-
-  @override
   void dispose() {
     if (_disposed) return;
-    
+
     _choiceController.close();
     if (!_sortCompleter.isCompleted) {
       _sortCompleter.completeError(StateError(
@@ -139,34 +122,4 @@ class InteractiveMergeSort<T> implements InteractiveSort<T> {
 
   @override
   bool get isDisposed => _disposed;
-
-  factory InteractiveMergeSort.fromJson(Map<String, dynamic> json,
-      {FromJson<T>? listItemFromJson}) {
-    List<T> list;
-    if (listItemFromJson != null) {
-      List<Map<String, dynamic>> jsonList =
-          json[listKey].cast<Map<String, dynamic>>();
-      list = jsonList.map((item) => listItemFromJson(item)).toList();
-    } else {
-      try {
-        list = json[listKey] as List<T>;
-      } catch (e) {
-        throw StateError(
-            'List could not be converted from JSON. Try providing a custom listItemFromJson function for the list items.');
-      }
-    }
-    Map<String, dynamic> stepsJson = json[stepsKey].cast<String, dynamic>();
-    Map<int, MergeSortStep> steps = stepsJson.map((key, value) =>
-        MapEntry(int.parse(key), MergeSortStep.fromJson(value)));
-    int currentStepIndex = json[currentStepIndexKey];
-    MergeSortStep currentStep = steps[currentStepIndex]!;
-
-    return InteractiveMergeSort._(list, steps, currentStep);
-  }
-
-  factory InteractiveMergeSort.fromJsonString(String jsonString,
-      {FromJson<T>? listItemFromJson}) {
-    return InteractiveMergeSort.fromJson(jsonDecode(jsonString),
-        listItemFromJson: listItemFromJson);
-  }
 }
