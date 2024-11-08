@@ -36,6 +36,9 @@ class MergeSortStep {
       _leftItemIndices = [];
       _rightItemIndices = [];
       _sortedIndicesList.add(startIndex);
+    } else if (startIndex + 1 == endIndex) {
+      _leftItemIndices = [startIndex];
+      _rightItemIndices = [endIndex];
     }
   }
 
@@ -66,6 +69,9 @@ class MergeSortStep {
           parentStep!.receiveChildResult(currentStep);
           steps.remove(currentStep.stepIndex);
         }
+        continue;
+      }
+      if (currentStep._startIndex + 1 == currentStep._endIndex) {
         continue;
       }
 
