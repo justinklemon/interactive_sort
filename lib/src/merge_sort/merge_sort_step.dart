@@ -63,8 +63,7 @@ class MergeSortStep {
       if (currentStep.isSorted) {
         if (currentStep.parentStepIndex != null) {
           final parentStep = steps[currentStep.parentStepIndex!];
-          parentStep!.receiveChildResult(
-              currentStep._sortedIndicesList, currentStep.nodeType);
+          parentStep!.receiveChildResult(currentStep);
           steps.remove(currentStep.stepIndex);
         }
         continue;
@@ -102,13 +101,18 @@ class MergeSortStep {
     );
   }
 
-  void receiveChildResult(List<int> childrenSortedIndices, NodeType childType) {
-    if (childType == NodeType.leftBranch) {
-      _leftItemIndices = childrenSortedIndices;
-    } else if (childType == NodeType.rightBranch) {
-      _rightItemIndices = childrenSortedIndices;
-    } else {
-      throw ArgumentError('Invalid child type');
+  void receiveChildResult(MergeSortStep child) {
+    if (child.nodeType == NodeType.root) {
+      throw ArgumentError('Cannot receive result from root node');
+    }
+    if (child.parentStepIndex != stepIndex) {
+      throw ArgumentError('Child does not belong to this parent step');
+    }
+
+    if (child.nodeType == NodeType.leftBranch) {
+      _leftItemIndices = List.from(child.sortedIndicesList);
+    } else if (child.nodeType == NodeType.rightBranch) {
+      _rightItemIndices = List.from(child.sortedIndicesList);
     }
   }
 

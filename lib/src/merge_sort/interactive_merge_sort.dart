@@ -73,8 +73,7 @@ class InteractiveMergeSort<T> implements InteractiveSort<T> {
       throw ArgumentError('Invalid item selected');
     }
     if (_currentStep.isSorted && _currentStep.nodeType != NodeType.root) {
-      _steps[_currentStep.parentStepIndex!]!.receiveChildResult(
-          _currentStep.sortedIndicesList, _currentStep.nodeType);
+      _steps[_currentStep.parentStepIndex!]!.receiveChildResult(_currentStep);
       _steps.remove(_currentStep.stepIndex);
       _updateCurrentStep();
     }
