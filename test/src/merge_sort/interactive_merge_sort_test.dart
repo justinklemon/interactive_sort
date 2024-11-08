@@ -141,6 +141,27 @@ void main() {
       expect(() => sorter.onItemSelected(5), throwsStateError);
     });
 
+    group('List with 2 items', () {
+      test('List with 2 items, pick left', () {
+        final sorter = InteractiveSort.mergeSort([1, 2]);
+        expect(sorter.isSorted, false);
+        sorter.onItemSelected(1);
+        expect(sorter.isSorted, true);
+        expectLater(sorter.sortedList, completion(equals([1, 2])));
+      });
+
+      test('List with 2 items, pick right', () {
+        final sorter = InteractiveSort.mergeSort([1, 2]);
+        expect(sorter.isSorted, false);
+        sorter.choicePairStream.listen((pair) {
+          print(pair);
+        });
+        sorter.onItemSelected(2);
+        expect(sorter.isSorted, true);
+        expectLater(sorter.sortedList, completion(equals([2, 1])));
+      });
+    });
+
     test('Very large list sorts correctly and efficiently', () {
       final largeList = List.generate(10000, (i) => Random().nextInt(100000));
       testSorting(largeList, largeList..sort(), (a, b) => a.compareTo(b));
