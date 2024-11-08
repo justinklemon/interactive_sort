@@ -149,6 +149,8 @@ class MergeSortStep {
   void selectLeftItem() {
     if (_leftItemIndices == null) {
       throw StateError('Left child has not been sorted yet');
+    } else if (_rightItemIndices == null) {
+      throw StateError('Right child has not been sorted yet');
     } else if (_leftItemIndices!.isEmpty) {
       throw StateError('Left child is empty');
     }
@@ -162,6 +164,8 @@ class MergeSortStep {
   void selectRightItem() {
     if (_rightItemIndices == null) {
       throw StateError('Right child has not been sorted yet');
+    } else if (_leftItemIndices == null) {
+      throw StateError('Left child has not been sorted yet');
     } else if (_rightItemIndices!.isEmpty) {
       throw StateError('Right child is empty');
     }
