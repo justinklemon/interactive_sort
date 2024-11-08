@@ -2,15 +2,6 @@ import 'dart:collection';
 
 import 'node_type.dart';
 
-const stepIndexKey = 'stepIndex';
-const parentStepIndexKey = 'parentStepIndex';
-const nodeTypeKey = 'nodeType';
-const startIndexKey = '_startIndex';
-const endIndexKey = '_endIndex';
-const sortedIndicesListKey = '_sortedList';
-const leftItemIndicesKey = '_leftItemIndices';
-const rightItemIndicesKey = '_rightItemIndices';
-
 class MergeSortStep {
   final int stepIndex;
   final int? parentStepIndex;
