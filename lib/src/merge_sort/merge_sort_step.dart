@@ -110,9 +110,17 @@ class MergeSortStep {
     }
 
     if (child.nodeType == NodeType.leftBranch) {
-      _leftItemIndices = List.from(child.sortedIndicesList);
+      if (_leftItemIndices == null) {
+        _leftItemIndices = List.from(child.sortedIndicesList);
+      } else {
+        throw StateError('Left child has already been sorted');
+      }
     } else if (child.nodeType == NodeType.rightBranch) {
-      _rightItemIndices = List.from(child.sortedIndicesList);
+      if (_rightItemIndices == null) {
+        _rightItemIndices = List.from(child.sortedIndicesList);
+      } else {
+        throw StateError('Right child has already been sorted');
+      }
     }
   }
 
