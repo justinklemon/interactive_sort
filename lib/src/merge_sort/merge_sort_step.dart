@@ -1,5 +1,4 @@
 import 'dart:collection';
-import 'dart:convert';
 
 import 'node_type.dart';
 
@@ -38,32 +37,6 @@ class MergeSortStep {
       _rightItemIndices = [];
       _sortedIndicesList.add(startIndex);
     }
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      stepIndexKey: stepIndex,
-      parentStepIndexKey: parentStepIndex,
-      nodeTypeKey:
-          nodeType.toString(), // Convert nodeType to a string representation
-      startIndexKey: _startIndex,
-      endIndexKey: _endIndex,
-      sortedIndicesListKey: _sortedIndicesList,
-      leftItemIndicesKey: _leftItemIndices,
-      rightItemIndicesKey: _rightItemIndices
-    };
-  }
-
-  MergeSortStep.fromJson(Map<String, dynamic> json)
-      : stepIndex = json[stepIndexKey],
-        parentStepIndex = json[parentStepIndexKey],
-        nodeType = NodeType.values
-            .firstWhere((e) => e.toString() == json[nodeTypeKey]),
-        _startIndex = json[startIndexKey],
-        _endIndex = json[endIndexKey],
-        _leftItemIndices = json[leftItemIndicesKey]?.cast<int>(),
-        _rightItemIndices = json[rightItemIndicesKey]?.cast<int>() {
-    _sortedIndicesList.addAll(json[sortedIndicesListKey].cast<int>());
   }
 
   static Map<int, MergeSortStep> generateTree<T>({required List<T> list}) {
@@ -197,6 +170,16 @@ class MergeSortStep {
 
   @override
   String toString() {
-    return 'MergeSortStep${const JsonEncoder.withIndent('  ').convert(toJson())}';
+    StringBuffer buffer = StringBuffer('MergeSortStep(');
+    buffer.write('\n\tstepIndex: $stepIndex, ');
+    buffer.write('\n\tparentStepIndex: $parentStepIndex, ');
+    buffer.write('\n\tnodeType: $nodeType, ');
+    buffer.write('\n\tstartIndex: $_startIndex, ');
+    buffer.write('\n\tendIndex: $_endIndex, ');
+    buffer.write('\n\tsortedIndicesList: $_sortedIndicesList, ');
+    buffer.write('\n\tleftItemIndices: $_leftItemIndices, ');
+    buffer.write('\n\trightItemIndices: $_rightItemIndices');
+    buffer.write('\n)');
+    return buffer.toString();
   }
 }
