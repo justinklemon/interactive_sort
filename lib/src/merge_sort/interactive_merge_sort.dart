@@ -2,30 +2,23 @@ import 'dart:async';
 
 import '../choice_pair.dart';
 import '../interactive_sort_interface.dart';
-import 'merge_sort_step.dart';
-import 'node_type.dart';
-
-const String listKey = 'list';
-const String stepsKey = 'steps';
-const String currentStepIndexKey = 'currentStepIndex';
-
+import 'merge_sort_node.dart';
 class InteractiveMergeSort<T> implements InteractiveSort<T> {
   final List<T> _list;
   final Map<ChoicePair<T>, T> _choiceHistory;
-  final Map<int, MergeSortStep> _steps;
+  final MergeSortNode _root;
   final StreamController<ChoicePair<T>> _choiceController =
       StreamController<ChoicePair<T>>();
   final Completer<List<T>> _sortCompleter = Completer<List<T>>();
-  MergeSortStep _currentStep;
   bool _disposed = false;
 
-  InteractiveMergeSort._(List<T> list, this._steps, this._currentStep,
+  InteractiveMergeSort._(List<T> list, this._root,
       {Map<ChoicePair<T>, T>? choiceHistory})
       : _list = List.unmodifiable(list),
         _choiceHistory = Map.from(choiceHistory ?? {}) {
-    if (_currentStep.isSorted) {
+    if (_root.isSorted) {
       _sortCompleter.complete(
-          _currentStep.sortedIndicesList.map((index) => _list[index]).toList());
+          _root.sortedIndicesList.map((index) => _list[index]).toList());
       dispose();
     } else {
       _addItemsToStreams();
@@ -34,11 +27,8 @@ class InteractiveMergeSort<T> implements InteractiveSort<T> {
 
   factory InteractiveMergeSort(List<T> list,
       {Map<ChoicePair<T>, T>? choiceHistory}) {
-    Map<int, MergeSortStep> steps = MergeSortStep.generateTree(list: list);
-    int currentStepIndex = steps.keys.reduce((a, b) => a > b ? a : b);
-    MergeSortStep currentStep = steps[currentStepIndex]!;
-    return InteractiveMergeSort._(list, steps, currentStep,
-        choiceHistory: choiceHistory);
+    MergeSortNode root = MergeSortNode.buildMergeSortTree(list);
+    return InteractiveMergeSort._(list, root, choiceHistory: choiceHistory);
   }
 
   @override
@@ -60,27 +50,22 @@ class InteractiveMergeSort<T> implements InteractiveSort<T> {
     if (_sortCompleter.isCompleted) {
       throw StateError('Sorting is already complete');
     }
-    T leftItem = _list[_currentStep.leftItemIndex];
-    T rightItem = _list[_currentStep.rightItemIndex];
+    ChoicePair<int>? currChoiceIndices = _root.getChoicePair();
+    if (currChoiceIndices == null) {
+      throw StateError('No more choices to make');
+    }
+    T leftItem = _list[currChoiceIndices.left];
+    T rightItem = _list[currChoiceIndices.right];
+    if (selectedItem != leftItem && selectedItem != rightItem) {
+      throw ArgumentError('Item $selectedItem is not a valid choice');
+    }
     ChoicePair<T> choicePair = ChoicePair(leftItem, rightItem);
-    if (selectedItem == leftItem) {
-      _currentStep.selectLeftItem();
-      _choiceHistory[choicePair] = leftItem;
-    } else if (selectedItem == rightItem) {
-      _currentStep.selectRightItem();
-      _choiceHistory[choicePair] = rightItem;
-    } else {
-      throw ArgumentError('Invalid item selected');
-    }
-    if (_currentStep.isSorted && _currentStep.nodeType != NodeType.root) {
-      _steps[_currentStep.parentStepIndex!]!.receiveChildResult(_currentStep);
-      _steps.remove(_currentStep.stepIndex);
-      _updateCurrentStep();
-    }
+    _root.selectIndex(selectedItem == leftItem ? currChoiceIndices.left : currChoiceIndices.right);
+    _choiceHistory[choicePair] = selectedItem;
 
-    if (_currentStep.isSorted && _currentStep.nodeType == NodeType.root) {
+    if (_root.isSorted) {
       _sortCompleter.complete(
-          _currentStep.sortedIndicesList.map((index) => _list[index]).toList());
+          _root.sortedIndicesList.map((index) => _list[index]).toList());
       dispose();
     } else {
       _addItemsToStreams();
@@ -88,23 +73,20 @@ class InteractiveMergeSort<T> implements InteractiveSort<T> {
   }
 
   void _addItemsToStreams() {
-    T leftItem = _list[_currentStep.leftItemIndex];
-    T rightItem = _list[_currentStep.rightItemIndex];
-    T? previousChoice = _choiceHistory[ChoicePair(leftItem, rightItem)];
+    ChoicePair<int>? currChoiceIndices = _root.getChoicePair();
+    if (currChoiceIndices == null) {
+      throw StateError('No more choices to make');
+    }
+    T leftItem = _list[currChoiceIndices.left];
+    T rightItem = _list[currChoiceIndices.right];
+    ChoicePair<T> choicePair = ChoicePair(leftItem, rightItem);
+    T? previousChoice = _choiceHistory[choicePair];
     if (previousChoice != null) {
       onItemSelected(previousChoice);
       return;
     }
     // Only add items to the stream if they haven't been selected before
-    _choiceController.add(ChoicePair(leftItem, rightItem));
-  }
-
-  void _updateCurrentStep() {
-    int stepIndex = _currentStep.stepIndex;
-    while (_steps[stepIndex] == null && stepIndex > 0) {
-      stepIndex--;
-    }
-    _currentStep = _steps[stepIndex]!;
+    _choiceController.add(choicePair);
   }
 
   @override
