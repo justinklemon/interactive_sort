@@ -8,7 +8,6 @@ class MergeSortNode {
   MergeSortNodeChildren? children;
   bool _isSorted = false;
 
-
   MergeSortNode({
     required this.startIndex,
     required this.endIndex,
@@ -38,51 +37,33 @@ class MergeSortNode {
     return List.from(_sortedIndicesList);
   }
 
-  static MergeSortNode buildMergeSortTree(List<dynamic> list) {
-    return _buildMergeSortTree(0, list.length - 1);
-  }
-
-  static MergeSortNode _buildMergeSortTree(int startIndex, int endIndex) {
-    if (endIndex < startIndex) {
-      return MergeSortNode.empty();
-    } else if (startIndex == endIndex) {
-      return MergeSortNode.single(startIndex);
-    } else {
-      final int midIndex = (startIndex + endIndex) ~/ 2;
-      final MergeSortNode leftChild = _buildMergeSortTree(startIndex, midIndex);
-      final MergeSortNode rightChild = _buildMergeSortTree(midIndex + 1, endIndex);
-      return MergeSortNode(
-        startIndex: startIndex,
-        endIndex: endIndex,
-        children: MergeSortNodeChildren(left: leftChild, right: rightChild),
-      );
-    }
-  }
-
-  @override
-  String toString() {
-    return prettyPrint(this);
-  }
-
-  static String prettyPrint(MergeSortNode? node,
-      [String top = '', String root = '', String bottom = '']) {
-    if (node == null) {
-      return '$root null\n';
-    }
-    if (node.isSorted) {
-      return '$root ${node._sortedIndicesList}\n';
-    }
-    final right = prettyPrint(node.children?.right, '$top ', '$top┌──', '$top│ ');
-    final left =
-        prettyPrint(node.children?.left, '$bottom│ ', '$bottom└──', '$bottom ');
-    String nodeString = "(${node.startIndex} - ${node.endIndex}) => ${node._sortedIndicesList}";
-    if (node.isSorted) {
-      nodeString = node._sortedIndicesList.toString();
+  /// Traverse the tree to find the pair of indices that need to be compared next
+  /// Returns the pair of indices if found, otherwise returns null
+  ChoicePair<int>? get currentChoicePair {
+    if (children == null || isSorted) {
+      return null;
     }
 
-    return '$right$root$nodeString\n$left';
+    final MergeSortNode leftChild = children!.left;
+    final MergeSortNode rightChild = children!.right;
+    if (leftChild.isSorted && rightChild.isSorted) {
+      final int leftIndex = leftChild._sortedIndicesList.first;
+      final int rightIndex = rightChild._sortedIndicesList.first;
+      return ChoicePair(leftIndex, rightIndex);
+    }
+
+    ChoicePair<int>? leftChoice = leftChild.currentChoicePair;
+    if (leftChoice != null) {
+      return leftChoice;
+    }
+    return rightChild.currentChoicePair;
   }
 
+  /// Select an index to be added to the sorted list
+  /// Recursively traverses the tree to find the index in the appropriate child
+  /// If the index is found in one of the children, it is removed from the child and added to the sorted list
+  /// If one of the children is empty, the sorted indices from the other child are added to the sorted list
+  /// If the children are not sorted, the index is selected in the appropriate child
   void selectIndex(int index) {
     if (index < startIndex || index > endIndex) {
       throw ArgumentError('Index out of range');
@@ -128,24 +109,51 @@ class MergeSortNode {
     }
   }
 
-  ChoicePair<int>? getChoicePair() {
-    if (children == null || isSorted) {
-      return null;
+  static MergeSortNode buildMergeSortTree(List<dynamic> list) {
+    return _buildMergeSortTree(0, list.length - 1);
+  }
+
+  static MergeSortNode _buildMergeSortTree(int startIndex, int endIndex) {
+    if (endIndex < startIndex) {
+      return MergeSortNode.empty();
+    } else if (startIndex == endIndex) {
+      return MergeSortNode.single(startIndex);
+    } else {
+      final int midIndex = (startIndex + endIndex) ~/ 2;
+      final MergeSortNode leftChild = _buildMergeSortTree(startIndex, midIndex);
+      final MergeSortNode rightChild =
+          _buildMergeSortTree(midIndex + 1, endIndex);
+      return MergeSortNode(
+        startIndex: startIndex,
+        endIndex: endIndex,
+        children: MergeSortNodeChildren(left: leftChild, right: rightChild),
+      );
+    }
+  }
+
+  static String prettyPrint(MergeSortNode? node,
+      [String top = '', String root = '', String bottom = '']) {
+    if (node == null) {
+      return '$root null\n';
+    }
+    if (node.isSorted) {
+      return '$root ${node._sortedIndicesList}\n';
+    }
+    final right =
+        prettyPrint(node.children?.right, '$top ', '$top┌──', '$top│ ');
+    final left =
+        prettyPrint(node.children?.left, '$bottom│ ', '$bottom└──', '$bottom ');
+    String nodeString =
+        "(${node.startIndex} - ${node.endIndex}) => ${node._sortedIndicesList}";
+    if (node.isSorted) {
+      nodeString = node._sortedIndicesList.toString();
     }
 
-    final MergeSortNode leftChild = children!.left;
-    final MergeSortNode rightChild = children!.right;
-    if (leftChild.isSorted && rightChild.isSorted) {
-      final int leftIndex = leftChild._sortedIndicesList.first;
-      final int rightIndex = rightChild._sortedIndicesList.first;
-      return ChoicePair(leftIndex, rightIndex);
-    }
+    return '$right$root$nodeString\n$left';
+  }
 
-    ChoicePair<int>? leftChoice = leftChild.getChoicePair();
-    if (leftChoice != null) {
-      return leftChoice;
-    }
-    return rightChild.getChoicePair();
-
+  @override
+  String toString() {
+    return prettyPrint(this);
   }
 }

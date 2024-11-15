@@ -3,6 +3,7 @@ import 'dart:async';
 import '../choice_pair.dart';
 import '../interactive_sort_interface.dart';
 import 'merge_sort_node.dart';
+
 class InteractiveMergeSort<T> implements InteractiveSort<T> {
   final List<T> _list;
   final Map<ChoicePair<T>, T> _choiceHistory;
@@ -50,7 +51,7 @@ class InteractiveMergeSort<T> implements InteractiveSort<T> {
     if (_sortCompleter.isCompleted) {
       throw StateError('Sorting is already complete');
     }
-    ChoicePair<int>? currChoiceIndices = _root.getChoicePair();
+    ChoicePair<int>? currChoiceIndices = _root.currentChoicePair;
     if (currChoiceIndices == null) {
       throw StateError('No more choices to make');
     }
@@ -60,7 +61,9 @@ class InteractiveMergeSort<T> implements InteractiveSort<T> {
       throw ArgumentError('Item $selectedItem is not a valid choice');
     }
     ChoicePair<T> choicePair = ChoicePair(leftItem, rightItem);
-    _root.selectIndex(selectedItem == leftItem ? currChoiceIndices.left : currChoiceIndices.right);
+    _root.selectIndex(selectedItem == leftItem
+        ? currChoiceIndices.left
+        : currChoiceIndices.right);
     _choiceHistory[choicePair] = selectedItem;
 
     if (_root.isSorted) {
@@ -73,7 +76,7 @@ class InteractiveMergeSort<T> implements InteractiveSort<T> {
   }
 
   void _addItemsToStreams() {
-    ChoicePair<int>? currChoiceIndices = _root.getChoicePair();
+    ChoicePair<int>? currChoiceIndices = _root.currentChoicePair;
     if (currChoiceIndices == null) {
       throw StateError('No more choices to make');
     }
