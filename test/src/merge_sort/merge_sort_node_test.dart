@@ -155,4 +155,128 @@ void main() {
       expect(node.sortedIndicesList, [2, 0, 1]);
     });
   });
+
+  group('maxChoicesLeft after constructing', () {
+    test('Empty node', () {
+      MergeSortNode node = MergeSortNode.empty();
+      expect(node.maxChoicesLeft, 0);
+    });
+    test('Single item node', () {
+      MergeSortNode node = MergeSortNode.single(0);
+      expect(node.maxChoicesLeft, 0);
+    });
+    test('Two item node', () {
+      MergeSortNode node = MergeSortNode.buildMergeSortTree([1, 2]);
+      expect(node.maxChoicesLeft, 1);
+    });
+    test('Three item node', () {
+      MergeSortNode node = MergeSortNode.buildMergeSortTree([1, 2, 3]);
+      expect(node.maxChoicesLeft, 3);
+    });
+    test('Four item node', () {
+      MergeSortNode node = MergeSortNode.buildMergeSortTree([1, 2, 3, 4]);
+      expect(node.maxChoicesLeft, 5);
+    });
+    test('Five item node', () {
+      MergeSortNode node = MergeSortNode.buildMergeSortTree([1, 2, 3, 4, 5]);
+      expect(node.maxChoicesLeft, 8);
+    });
+    test('Six item node', () {
+      MergeSortNode node = MergeSortNode.buildMergeSortTree([1, 2, 3, 4, 5, 6]);
+      expect(node.maxChoicesLeft, 11);
+    });
+    test('Seven item node', () {
+      MergeSortNode node =
+          MergeSortNode.buildMergeSortTree([1, 2, 3, 4, 5, 6, 7]);
+      expect(node.maxChoicesLeft, 14);
+    });
+  });
+
+  group('maxChoicesLeft updates as choices are made', () {
+    test('Two item node', () {
+      MergeSortNode node = MergeSortNode.buildMergeSortTree([1, 2]);
+      expect(node.maxChoicesLeft, 1);
+      node.selectIndex(0);
+      expect(node.maxChoicesLeft, 0);
+    });
+    test('Three item node, pick left, then right', () {
+      MergeSortNode node = MergeSortNode.buildMergeSortTree([1, 2, 3]);
+      expect(node.maxChoicesLeft, 3);
+      node.selectIndex(0);
+      expect(node.maxChoicesLeft, 2);
+      node.selectIndex(2);
+      expect(node.maxChoicesLeft, 0);
+    });
+
+    test('Three item node, pick left every time', () {
+      MergeSortNode node = MergeSortNode.buildMergeSortTree([1, 2, 3]);
+      expect(node.maxChoicesLeft, 3);
+      node.selectIndex(0);
+      expect(node.maxChoicesLeft, 2);
+      node.selectIndex(0);
+      expect(node.maxChoicesLeft, 1);
+      node.selectIndex(1);
+      expect(node.maxChoicesLeft, 0);
+    });
+    test('Four item node, pick left every time', () {
+      MergeSortNode node = MergeSortNode.buildMergeSortTree([1, 2, 3, 4]);
+      expect(node.maxChoicesLeft, 5);
+      node.selectIndex(0);
+      expect(node.maxChoicesLeft, 4);
+      node.selectIndex(2);
+      expect(node.maxChoicesLeft, 3);
+      node.selectIndex(0);
+      expect(node.maxChoicesLeft, 2);
+      node.selectIndex(1);
+      expect(node.maxChoicesLeft, 0);
+    });
+    test('Four item node, pick longest path', () {
+      MergeSortNode node = MergeSortNode.buildMergeSortTree([1, 2, 3, 4]);
+      expect(node.maxChoicesLeft, 5);
+      node.selectIndex(0);
+      expect(node.maxChoicesLeft, 4);
+      node.selectIndex(2);
+      expect(node.maxChoicesLeft, 3);
+      node.selectIndex(0);
+      expect(node.maxChoicesLeft, 2);
+      node.selectIndex(2);
+      expect(node.maxChoicesLeft, 1);
+      node.selectIndex(1);
+      expect(node.maxChoicesLeft, 0);
+    });
+    test('Five item node with more efficient choices', () {
+      MergeSortNode node = MergeSortNode.buildMergeSortTree([1, 2, 3, 4, 5]);
+      expect(node.maxChoicesLeft, 8);
+      node.selectIndex(0);
+      expect(node.maxChoicesLeft, 7);
+      node.selectIndex(4);
+      expect(node.maxChoicesLeft, 6);
+      node.selectIndex(2);
+      expect(node.maxChoicesLeft, 4);
+      node.selectIndex(4);
+      expect(node.maxChoicesLeft, 3);
+      node.selectIndex(3);
+      expect(node.maxChoicesLeft, 0);
+    });
+    test('Five item node with less efficient choices', () {
+      MergeSortNode node = MergeSortNode.buildMergeSortTree([1, 2, 3, 4, 5]);
+      expect(node.maxChoicesLeft, 8);
+      node.selectIndex(0);
+      expect(node.maxChoicesLeft, 7);
+      node.selectIndex(0);
+      expect(node.maxChoicesLeft, 6);
+      node.selectIndex(4);
+      expect(node.maxChoicesLeft, 5);
+      node.selectIndex(1);
+      expect(node.maxChoicesLeft, 4);
+      node.selectIndex(0);
+      expect(node.maxChoicesLeft, 3);
+      node.selectIndex(1);
+      expect(node.maxChoicesLeft, 2);
+      node.selectIndex(4);
+      expect(node.maxChoicesLeft, 1);
+      node.selectIndex(3);
+      expect(node.maxChoicesLeft, 0);
+    });
+  });
 }

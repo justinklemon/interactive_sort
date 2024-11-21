@@ -9,6 +9,7 @@ typedef ChoiceResult<T> = Map<ChoicePair<T>, T>;
 
 abstract interface class InteractiveSort<T> {
   Stream<ChoicePair<T>> get choicePairStream;
+  Stream<int> get maxChoicesLeftStream;
   Future<List<T>> get sortedList;
   bool get isSorted;
   bool get isNotSorted;
@@ -20,7 +21,8 @@ abstract interface class InteractiveSort<T> {
 
   bool get isDisposed;
 
-  factory InteractiveSort.mergeSort(List<T> list, {Map<ChoicePair<T>, T>? choiceHistory}) {
+  factory InteractiveSort.mergeSort(List<T> list,
+      {Map<ChoicePair<T>, T>? choiceHistory}) {
     return InteractiveMergeSort<T>(list, choiceHistory: choiceHistory);
   }
 }

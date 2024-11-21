@@ -60,3 +60,6 @@ Refactored to remove the toJson/fromJson methods as they were needlessly complex
 accepts a map of `ChoicePair` objects to the choice. It also tracks each choice the user makes and allows 
 you to retrieve the full map at any point. This will allow you to save the choice history when you stop
 sorting for any reason.
+
+## 0.0.5
+Refactored the merge sort method to use recursive nodes instead of a map. Also added a stream for the maximum number of choices left if the user sorts inefficiently.

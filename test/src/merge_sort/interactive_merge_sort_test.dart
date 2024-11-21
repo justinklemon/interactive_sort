@@ -202,6 +202,86 @@ void main() {
       expect(sorter.isDisposed, true);
     });
   });
+
+  group('maxChoiceLeft stream', () {
+    test('maxChoicesLeftStream emits nothing for empty stream', () {
+      final sorter = InteractiveSort.mergeSort([]);
+      expectLater(sorter.maxChoicesLeftStream, neverEmits(anything));
+    });
+    test('maxChoicesLeftStream emits nothing for single item', () {
+      final sorter = InteractiveSort.mergeSort([1]);
+      expectLater(sorter.maxChoicesLeftStream, neverEmits(anything));
+    });
+    test('maxChoicesLeftStream emits correct values for 2 items', () {
+      final sorter = InteractiveSort.mergeSort([1, 2]);
+      expectLater(sorter.maxChoicesLeftStream, emitsInOrder([1, emitsDone]));
+      sorter.choicePairStream.listen((pair) {
+        sorter.onItemSelected(pair.left);
+      });
+    });
+
+    test('maxChoicesLeftStream emits correct values for 3 items - pick left',
+        () {
+      final sorter = InteractiveSort.mergeSort([1, 2, 3]);
+      expectLater(
+          sorter.maxChoicesLeftStream, emitsInOrder([3, 2, 1, emitsDone]));
+      sorter.choicePairStream.listen((pair) {
+        sorter.onItemSelected(pair.left);
+      });
+    });
+
+    test('maxChoicesLeftStream emits correct values for 3 items - pick right',
+        () {
+      final sorter = InteractiveSort.mergeSort([1, 2, 3]);
+      expectLater(sorter.maxChoicesLeftStream, emitsInOrder([3, 2, emitsDone]));
+      sorter.choicePairStream.listen((pair) {
+        sorter.onItemSelected(pair.right);
+      });
+    });
+
+    test('maxChoicesLeftStream emits correct values for 4 items - pick left',
+        () {
+      final sorter = InteractiveSort.mergeSort([1, 2, 3, 4]);
+      expectLater(
+          sorter.maxChoicesLeftStream, emitsInOrder([5, 4, 3, 2, emitsDone]));
+      sorter.choicePairStream.listen((pair) {
+        sorter.onItemSelected(pair.left);
+      });
+    });
+
+    test(
+        'maxChoicesLeftStream emits correct values for 4 items - pick less efficient path',
+        () {
+      final sorter = InteractiveSort.mergeSort([1, 2, 3, 4]);
+      expectLater(sorter.maxChoicesLeftStream,
+          emitsInOrder([5, 4, 3, 2, 1, emitsDone]));
+      sorter.onItemSelected(1);
+      sorter.onItemSelected(3);
+      sorter.onItemSelected(1);
+      sorter.onItemSelected(3);
+      sorter.onItemSelected(4);
+      expect(sorter.isSorted, true);
+      expectLater(sorter.sortedList, completion(equals([1, 3, 4, 2])));
+    });
+
+    test(
+        'maxChoicesLeftStream emits correct values for 5 items - pick less efficient path',
+        () {
+      final sorter = InteractiveSort.mergeSort([1, 2, 3, 4, 5]);
+      expectLater(sorter.maxChoicesLeftStream,
+          emitsInOrder([8, 7, 6, 5, 4, 3, 2, 1, emitsDone]));
+      sorter.onItemSelected(1);
+      sorter.onItemSelected(1);
+      sorter.onItemSelected(2);
+      sorter.onItemSelected(4);
+      sorter.onItemSelected(4);
+      sorter.onItemSelected(1);
+      sorter.onItemSelected(2);
+      sorter.onItemSelected(5);
+      expect(sorter.isSorted, true);
+      expectLater(sorter.sortedList, completion(equals([4, 1, 2, 5, 3])));
+    });
+  });
 }
 
 void testSorting<T>(List<T> list, List<T> expected, Comparator<T> comparator) {

@@ -10,6 +10,8 @@ class InteractiveMergeSort<T> implements InteractiveSort<T> {
   final MergeSortNode _root;
   final StreamController<ChoicePair<T>> _choiceController =
       StreamController<ChoicePair<T>>();
+  final StreamController<int> _maxChoicesLeftController =
+      StreamController<int>();
   final Completer<List<T>> _sortCompleter = Completer<List<T>>();
   bool _disposed = false;
 
@@ -34,6 +36,8 @@ class InteractiveMergeSort<T> implements InteractiveSort<T> {
 
   @override
   Stream<ChoicePair<T>> get choicePairStream => _choiceController.stream;
+  @override
+  Stream<int> get maxChoicesLeftStream => _maxChoicesLeftController.stream;
   @override
   Future<List<T>> get sortedList => _sortCompleter.future;
   @override
@@ -90,6 +94,7 @@ class InteractiveMergeSort<T> implements InteractiveSort<T> {
     }
     // Only add items to the stream if they haven't been selected before
     _choiceController.add(choicePair);
+    _maxChoicesLeftController.add(_root.maxChoicesLeft);
   }
 
   @override
@@ -97,6 +102,7 @@ class InteractiveMergeSort<T> implements InteractiveSort<T> {
     if (_disposed) return;
 
     _choiceController.close();
+    _maxChoicesLeftController.close();
     if (!_sortCompleter.isCompleted) {
       _sortCompleter.completeError(StateError(
           'InteractiveMergeSort disposed before sorting was completed'));

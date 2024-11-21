@@ -59,6 +59,23 @@ class MergeSortNode {
     return rightChild.currentChoicePair;
   }
 
+  int get maxChoicesLeft {
+    if (children == null || isSorted) {
+      return 0;
+    }
+
+    final MergeSortNode leftChild = children!.left;
+    final MergeSortNode rightChild = children!.right;
+    
+    if (leftChild.isSorted && rightChild.isSorted){
+      int leftChildOptions = leftChild._sortedIndicesList.length;
+      int rightChildOptions = rightChild._sortedIndicesList.length;
+      return leftChildOptions + rightChildOptions - 1;
+    }
+    int maxOptionsAtThisNode = endIndex - startIndex;
+    return maxOptionsAtThisNode + leftChild.maxChoicesLeft + rightChild.maxChoicesLeft;
+  }
+
   /// Select an index to be added to the sorted list
   /// Recursively traverses the tree to find the index in the appropriate child
   /// If the index is found in one of the children, it is removed from the child and added to the sorted list
