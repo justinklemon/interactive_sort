@@ -28,6 +28,33 @@ class MergeSortNode {
     _sortedIndicesList.add(index);
   }
 
+  /// Named constructor for a node that is already sorted.
+  /// Accepts the start and end indices and the sorted indices list.
+  /// Validates that the sorted indices list is of the correct size.
+  MergeSortNode.alreadySorted({
+    required this.startIndex,
+    required this.endIndex,
+    required List<int> sortedIndicesList,
+  })  : children = null,
+        _isSorted = true {
+    // Validate input
+    if (startIndex > endIndex) {
+      throw ArgumentError('startIndex must be less than or equal to endIndex');
+    }
+    if (sortedIndicesList.length != endIndex - startIndex + 1) {
+      throw ArgumentError(
+          'sortedIndicesList must have length equal to endIndex - startIndex + 1');
+    }
+    if (!sortedIndicesList
+        .every((index) => index >= startIndex && index <= endIndex)) {
+      throw ArgumentError(
+          'All indices in sortedIndicesList must be within [startIndex, endIndex]');
+    }
+
+    // Add sorted indices to the internal list
+    _sortedIndicesList.addAll(sortedIndicesList);
+  }
+
   bool get isSorted => _isSorted;
 
   List<int> get sortedIndicesList {
@@ -66,14 +93,16 @@ class MergeSortNode {
 
     final MergeSortNode leftChild = children!.left;
     final MergeSortNode rightChild = children!.right;
-    
-    if (leftChild.isSorted && rightChild.isSorted){
+
+    if (leftChild.isSorted && rightChild.isSorted) {
       int leftChildOptions = leftChild._sortedIndicesList.length;
       int rightChildOptions = rightChild._sortedIndicesList.length;
       return leftChildOptions + rightChildOptions - 1;
     }
     int maxOptionsAtThisNode = endIndex - startIndex;
-    return maxOptionsAtThisNode + leftChild.maxChoicesLeft + rightChild.maxChoicesLeft;
+    return maxOptionsAtThisNode +
+        leftChild.maxChoicesLeft +
+        rightChild.maxChoicesLeft;
   }
 
   /// Select an index to be added to the sorted list
@@ -146,6 +175,48 @@ class MergeSortNode {
         children: MergeSortNodeChildren(left: leftChild, right: rightChild),
       );
     }
+  }
+
+  static MergeSortNode buildPartiallySortedTree(
+      int unsortedLength, List<MergeSortNode> sortedNodes) {
+    if (sortedNodes.isEmpty) {
+      return _buildMergeSortTree(0, unsortedLength - 1);
+    }
+
+    int previousEndIndex = -1;
+    for (MergeSortNode node in sortedNodes) {
+      if (node.startIndex <= previousEndIndex) {
+        throw ArgumentError('Sorted nodes must not overlap');
+      }
+      if (previousEndIndex != -1 && node.startIndex != previousEndIndex + 1) {
+        throw ArgumentError('Sorted nodes must be contiguous');
+      }
+      previousEndIndex = node.endIndex;
+    }
+
+    List<MergeSortNode> allNodes = [
+      if (unsortedLength > 0) _buildMergeSortTree(0, unsortedLength - 1),
+      ...sortedNodes,
+    ];
+
+    while (allNodes.length > 1) {
+      List<MergeSortNode> newNodes = [];
+      for (int i = 0; i < allNodes.length; i += 2) {
+        if (i + 1 < allNodes.length) {
+          newNodes.add(MergeSortNode(
+            startIndex: allNodes[i].startIndex,
+            endIndex: allNodes[i + 1].endIndex,
+            children: MergeSortNodeChildren(
+                left: allNodes[i], right: allNodes[i + 1]),
+          ));
+        } else {
+          newNodes.add(allNodes[i]);
+        }
+      }
+      allNodes = newNodes;
+    }
+
+    return allNodes[0];
   }
 
   static String prettyPrint(MergeSortNode? node,

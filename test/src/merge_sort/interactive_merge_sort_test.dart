@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:interactive_sort/interactive_sort.dart';
+import 'package:interactive_sort/src/merge_sort/interactive_merge_sort.dart';
 
 void main() {
   group('InteractiveMergeSort Tests', () {
@@ -280,6 +281,95 @@ void main() {
       sorter.onItemSelected(5);
       expect(sorter.isSorted, true);
       expectLater(sorter.sortedList, completion(equals([4, 1, 2, 5, 3])));
+    });
+  });
+
+  test('tmp', () {
+    final sorter = InteractiveSort.mergeSort([1, 2, 3, 4]);
+    sorter.choicePairStream.listen((pair) {
+      // print(pair);
+    });
+  });
+
+  group('InteractiveMergeSort.partiallySorted', () {
+    test('sorts partially sorted list correctly', () async {
+      List<int> unsortedList = [3, 1];
+      List<List<int>> sortedLists = [
+        [2, 4],
+        [5, 6]
+      ];
+      InteractiveSort<int> sort =
+          InteractiveMergeSort.partiallySorted(unsortedList, sortedLists);
+
+      expect(sort.isSorted, false);
+      expect(sort.isNotSorted, true);
+
+      sort.choicePairStream.listen((pair) {
+        if (pair.left < pair.right) {
+          sort.onItemSelected(pair.left);
+        } else {
+          sort.onItemSelected(pair.right);
+        }
+      });
+
+      List<int> result = await sort.sortedList;
+      expect(result, [1, 2, 3, 4, 5, 6]);
+      expect(sort.isSorted, true);
+      expect(sort.isNotSorted, false);
+    });
+
+    test('handles empty unsorted list', () async {
+      List<int> unsortedList = [];
+      List<List<int>> sortedLists = [
+        [1, 2],
+        [3, 4]
+      ];
+      InteractiveSort<int> sort =
+          InteractiveMergeSort.partiallySorted(unsortedList, sortedLists);
+
+      expect(sort.isSorted, false);
+      expect(sort.isNotSorted, true);
+
+      sort.choicePairStream.listen((pair) {
+        if (pair.left < pair.right) {
+          sort.onItemSelected(pair.left);
+        } else {
+          sort.onItemSelected(pair.right);
+        }
+      });
+
+      List<int> result = await sort.sortedList;
+      expect(result, [1, 2, 3, 4]);
+      expect(sort.isSorted, true);
+      expect(sort.isNotSorted, false);
+    });
+
+    test('handles empty sorted lists', () async {
+      List<int> unsortedList = [3, 1];
+      List<List<int>> sortedLists = [];
+      InteractiveSort<int> sort =
+          InteractiveMergeSort.partiallySorted(unsortedList, sortedLists);
+
+      expect(sort.isSorted, false);
+      expect(sort.isNotSorted, true);
+
+      sort.onItemSelected(1); // Choose 1 over 3
+
+      List<int> result = await sort.sortedList;
+      expect(result, [1, 3]);
+      expect(sort.isSorted, true);
+      expect(sort.isNotSorted, false);
+    });
+
+    test('throws error for invalid item selection', () {
+      List<int> unsortedList = [3, 1];
+      List<List<int>> sortedLists = [
+        [2, 4]
+      ];
+      InteractiveSort<int> sort =
+          InteractiveMergeSort.partiallySorted(unsortedList, sortedLists);
+
+      expect(() => sort.onItemSelected(5), throwsArgumentError);
     });
   });
 }

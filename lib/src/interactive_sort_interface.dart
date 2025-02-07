@@ -25,4 +25,12 @@ abstract interface class InteractiveSort<T> {
       {Map<ChoicePair<T>, T>? choiceHistory}) {
     return InteractiveMergeSort<T>(list, choiceHistory: choiceHistory);
   }
+  /// Constructor for partially sorted lists.
+  /// Accepts a list of unsorted items and a list of sorted item lists.
+  factory InteractiveSort.partiallySortedMergeSort(
+      List<T> unsortedItems, List<List<T>> sortedItemsLists,
+      {Map<ChoicePair<T>, T>? choiceHistory}) {
+    return InteractiveMergeSort.partiallySorted(unsortedItems, sortedItemsLists,
+        choiceHistory: choiceHistory);
+  }
 }

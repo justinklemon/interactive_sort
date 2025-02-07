@@ -279,4 +279,79 @@ void main() {
       expect(node.maxChoicesLeft, 0);
     });
   });
+
+
+  group('MergeSortNode.alreadySorted', () {
+    test('creates a valid sorted node with correct indices', () {
+      final node = MergeSortNode.alreadySorted(
+        startIndex: 2,
+        endIndex: 4,
+        sortedIndicesList: [2, 3, 4],
+      );
+
+      expect(node.startIndex, 2);
+      expect(node.endIndex, 4);
+      expect(node.isSorted, true);
+      expect(node.children, null);
+      expect(node.sortedIndicesList, [2, 3, 4]);
+    });
+
+    test('throws ArgumentError for invalid startIndex and endIndex', () {
+      expect(
+        () => MergeSortNode.alreadySorted(
+          startIndex: 4,
+          endIndex: 2,
+          sortedIndicesList: [2, 3, 4],
+        ),
+        throwsA(isA<ArgumentError>()),
+      );
+    });
+
+    test('throws ArgumentError for incorrect sortedIndicesList length', () {
+      expect(
+        () => MergeSortNode.alreadySorted(
+          startIndex: 2,
+          endIndex: 4,
+          sortedIndicesList: [2, 3],
+        ),
+        throwsA(isA<ArgumentError>()),
+      );
+    });
+
+    test('throws ArgumentError for out-of-range indices in sortedIndicesList',
+        () {
+      expect(
+        () => MergeSortNode.alreadySorted(
+          startIndex: 2,
+          endIndex: 4,
+          sortedIndicesList: [1, 2, 3],
+        ),
+        throwsA(isA<ArgumentError>()),
+      );
+    });
+
+    test('works with single element', () {
+      final node = MergeSortNode.alreadySorted(
+        startIndex: 5,
+        endIndex: 5,
+        sortedIndicesList: [5],
+      );
+
+      expect(node.startIndex, 5);
+      expect(node.endIndex, 5);
+      expect(node.isSorted, true);
+      expect(node.children, null);
+      expect(node.sortedIndicesList, [5]);
+    });
+
+    test('toString works correctly for already sorted node', () {
+      final node = MergeSortNode.alreadySorted(
+        startIndex: 2,
+        endIndex: 4,
+        sortedIndicesList: [2, 3, 4],
+      );
+
+      expect(node.toString(), ' [2, 3, 4]\n');
+    });
+  });
 }

@@ -19,6 +19,8 @@ class InteractiveMergeSort<T> implements InteractiveSort<T> {
       {Map<ChoicePair<T>, T>? choiceHistory})
       : _list = List.unmodifiable(list),
         _choiceHistory = Map.from(choiceHistory ?? {}) {
+    print(_list);
+    print(_root);
     if (_root.isSorted) {
       _sortCompleter.complete(
           _root.sortedIndicesList.map((index) => _list[index]).toList());
@@ -32,6 +34,30 @@ class InteractiveMergeSort<T> implements InteractiveSort<T> {
       {Map<ChoicePair<T>, T>? choiceHistory}) {
     MergeSortNode root = MergeSortNode.buildMergeSortTree(list);
     return InteractiveMergeSort._(list, root, choiceHistory: choiceHistory);
+  }
+
+  factory InteractiveMergeSort.partiallySorted(
+      List<T> unsortedList, List<List<T>> sortedLists,
+      {Map<ChoicePair<T>, T>? choiceHistory}) {
+    List<T> combinedList = [...unsortedList];
+    List<MergeSortNode> sortedNodes = [];
+    int currentIndex = unsortedList.length;
+
+    for (List<T> sortedList in sortedLists) {
+      sortedNodes.add(MergeSortNode.alreadySorted(
+        startIndex: currentIndex,
+        endIndex: currentIndex + sortedList.length - 1,
+        sortedIndicesList:
+            List.generate(sortedList.length, (index) => currentIndex + index),
+      ));
+      combinedList.addAll(sortedList);
+      currentIndex += sortedList.length;
+    }
+
+    MergeSortNode root = MergeSortNode.buildPartiallySortedTree(
+        unsortedList.length, sortedNodes);
+    return InteractiveMergeSort._(combinedList, root,
+        choiceHistory: choiceHistory);
   }
 
   @override
