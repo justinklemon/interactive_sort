@@ -19,8 +19,6 @@ class InteractiveMergeSort<T> implements InteractiveSort<T> {
       {Map<ChoicePair<T>, T>? choiceHistory})
       : _list = List.unmodifiable(list),
         _choiceHistory = Map.from(choiceHistory ?? {}) {
-    print(_list);
-    print(_root);
     if (_root.isSorted) {
       _sortCompleter.complete(
           _root.sortedIndicesList.map((index) => _list[index]).toList());

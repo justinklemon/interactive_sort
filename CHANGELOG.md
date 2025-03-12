@@ -67,3 +67,5 @@ Refactored the merge sort method to use recursive nodes instead of a map. Also a
 ## 0.0.6
 Added a 'partiallySorted' constructor that allows you to add a list of unsorted items and a list of sorted lists. 
 The contents of a sorted list will not be compared against each other. 
+## 0.0.7
+Removed unecessary print statements
