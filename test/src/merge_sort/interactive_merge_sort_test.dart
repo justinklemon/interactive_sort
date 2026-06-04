@@ -284,10 +284,105 @@ void main() {
     });
   });
 
-  test('tmp', () {
-    final sorter = InteractiveSort.mergeSort([1, 2, 3, 4]);
-    sorter.choicePairStream.listen((pair) {
-      // print(pair);
+  group('getKnownLessThan', () {
+    test('throws StateError when sorter is disposed', () {
+      final sorter = InteractiveSort.mergeSort([1, 2, 3]);
+      expect(() => sorter.getKnownLowerItems(1), isNot(throwsException));
+      expectLater(sorter.sortedList, throwsStateError);
+      sorter.dispose();
+
+      expect(() => sorter.getKnownLowerItems(1), throwsStateError);
+    });
+
+    test('throws ArgumentError when item is not in list', () {
+      final sorter = InteractiveSort.mergeSort([1, 2, 3]);
+      expect(() => sorter.getKnownLowerItems(999), throwsArgumentError);
+    });
+
+    test('two item list has no knowledge before first selection', () {
+      final sorter = InteractiveSort.mergeSort([1, 2]);
+
+      expect(sorter.getKnownLowerItems(1), isEmpty);
+      expect(sorter.getKnownLowerItems(2), isEmpty);
+    });
+
+    test('two item list updates knowledge after one selection', () {
+      final sorter = InteractiveSort.mergeSort([1, 2]);
+      sorter.onItemSelected(1);
+
+      expect(() => sorter.getKnownLowerItems(1), throwsStateError);
+    });
+
+    test('knowledge updates across merge phases', () {
+      final sorter = InteractiveSort.mergeSort([10, 20, 30]);
+
+      sorter.onItemSelected(10);
+      expect(sorter.getKnownLowerItems(10), [20]);
+      expect(sorter.getKnownLowerItems(20), isEmpty);
+      expect(sorter.getKnownLowerItems(30), isEmpty);
+
+      sorter.onItemSelected(10);
+      expect(sorter.getKnownLowerItems(10), unorderedEquals([20, 30]));
+      expect(sorter.getKnownLowerItems(20), isEmpty);
+      expect(sorter.getKnownLowerItems(30), isEmpty);
+    });
+
+    test('full sorting test of getKnownLessThan', () async {
+      const List<int> items = [5, 3, 8, 1, 4, 7, 2, 6, 9, 10];
+      final sorter = InteractiveSort.mergeSort(items);
+      final Map<int, Set<int>> expectedKnowledge = {};
+      sorter.choicePairStream.listen((pair) {
+        final int chosen = pair.left > pair.right ? pair.left : pair.right;
+        final int other = chosen == pair.left ? pair.right : pair.left;
+        sorter.onItemSelected(chosen);
+
+        // Update expected knowledge based on the choice and any knowledge the
+        // loser had already accumulated.
+        final Set<int> chosenKnowledge = expectedKnowledge.putIfAbsent(
+          chosen,
+          () => <int>{},
+        );
+        chosenKnowledge.add(other);
+        chosenKnowledge.addAll(expectedKnowledge[other] ?? const <int>{});
+        if (sorter.isSorted) {
+          return;
+        }
+        // Verify that getKnownLessThan matches expected knowledge
+        for (var item in items) {
+          if (expectedKnowledge.containsKey(item)) {
+            final Set<int> actualLessThan =
+                Set.from(sorter.getKnownLowerItems(item));
+            expect(actualLessThan, unorderedEquals(expectedKnowledge[item]!));
+          } else {
+            expect(sorter.getKnownLowerItems(item), isEmpty);
+          }
+        }
+      });
+    });
+
+    test('partiallySorted exposes sorted segment knowledge before merge', () {
+      final sorter = InteractiveMergeSort.partiallySorted(
+        [3, 1],
+        [
+          [2, 4]
+        ],
+      );
+
+      expect(sorter.getKnownLowerItems(2), [4]);
+      expect(sorter.getKnownLowerItems(4), isEmpty);
+      expect(sorter.getKnownLowerItems(1), isEmpty);
+      expect(sorter.getKnownLowerItems(3), isEmpty);
+    });
+
+    test('duplicate-equality items resolve to first matching index', () {
+      final first = _NameOnlyItem(id: 1, name: 'a');
+      final second = _NameOnlyItem(id: 2, name: 'a');
+      final InteractiveSort<_NameOnlyItem> sorter = InteractiveSort.mergeSort(
+        [first, _NameOnlyItem(id: 3, name: 'b'), second],
+      );
+
+      expect(sorter.getKnownLowerItems(first), isEmpty);
+      expect(sorter.getKnownLowerItems(second), isEmpty);
     });
   });
 
@@ -419,4 +514,21 @@ class _TestPerson {
 
   @override
   int get hashCode => name.hashCode ^ age.hashCode;
+}
+
+class _NameOnlyItem {
+  final int id;
+  final String name;
+
+  _NameOnlyItem({required this.id, required this.name});
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is _NameOnlyItem &&
+          runtimeType == other.runtimeType &&
+          name == other.name;
+
+  @override
+  int get hashCode => name.hashCode;
 }

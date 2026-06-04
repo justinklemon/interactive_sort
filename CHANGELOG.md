@@ -69,3 +69,6 @@ Added a 'partiallySorted' constructor that allows you to add a list of unsorted 
 The contents of a sorted list will not be compared against each other. 
 ## 0.0.7
 Removed unecessary print statements
+## 0.0.8
+Added a `getKnownLowerItems` function that returns a list of items that are known to be valued less than the 
+provided item. This can be used while sorting to check what items the current pair has already been compared against.

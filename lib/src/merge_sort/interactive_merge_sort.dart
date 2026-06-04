@@ -72,6 +72,20 @@ class InteractiveMergeSort<T> implements InteractiveSort<T> {
   Map<ChoicePair<T>, T> get choiceHistory => Map.from(_choiceHistory);
 
   @override
+  Iterable<T> getKnownLowerItems(T item) {
+    if (_disposed) {
+      throw StateError('InteractiveMergeSort has been disposed');
+    }
+    // Find the index of the item in the list
+    int itemIndex = _list.indexOf(item);
+    if (itemIndex == -1) {
+      throw ArgumentError('Item $item not found in the list');
+    }
+    Iterable<int> indicesLessThan = _root.getIndicesOfKnownLowerItems(itemIndex);
+    return indicesLessThan.map((index) => _list[index]);
+  }
+
+  @override
   void onItemSelected(T selectedItem) {
     if (_disposed) {
       throw StateError('InteractiveMergeSort has been disposed');

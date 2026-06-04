@@ -17,6 +17,17 @@ abstract interface class InteractiveSort<T> {
 
   void onItemSelected(T item);
 
+  /// Returns items that are currently known to be ranked lower than [item].
+  ///
+  /// Knowledge is inferred from the current partial merge state, so the result
+  /// may be incomplete until more comparisons are made.
+  ///
+  /// Important:
+  /// - The returned iterable is unordered.
+  /// - No relative ranking is implied among the returned items.
+  /// - Treat the result as a set of known-lower items.
+  Iterable<T> getKnownLowerItems(T item);
+
   void dispose();
 
   bool get isDisposed;
@@ -25,6 +36,7 @@ abstract interface class InteractiveSort<T> {
       {Map<ChoicePair<T>, T>? choiceHistory}) {
     return InteractiveMergeSort<T>(list, choiceHistory: choiceHistory);
   }
+
   /// Constructor for partially sorted lists.
   /// Accepts a list of unsorted items and a list of sorted item lists.
   factory InteractiveSort.partiallySortedMergeSort(

@@ -280,6 +280,79 @@ void main() {
     });
   });
 
+  group('getKnownLessThanIndices', () {
+    test('throws ArgumentError for out-of-range index', () {
+      final node = MergeSortNode.buildMergeSortTree([1, 2, 3]);
+      expect(() => node.getIndicesOfKnownLowerItems(-1), throwsArgumentError);
+      expect(() => node.getIndicesOfKnownLowerItems(3), throwsArgumentError);
+    });
+
+    test('single item node returns empty list', () {
+      final node = MergeSortNode.single(0);
+      expect(node.getIndicesOfKnownLowerItems(0), isEmpty);
+    });
+
+    test('two item node returns no knowledge before any selection', () {
+      final node = MergeSortNode.buildMergeSortTree([1, 2]);
+      expect(node.getIndicesOfKnownLowerItems(0), isEmpty);
+      expect(node.getIndicesOfKnownLowerItems(1), isEmpty);
+    });
+
+    test('two item node returns expected knowledge after selection', () {
+      final node = MergeSortNode.buildMergeSortTree([1, 2]);
+      node.selectIndex(0);
+
+      expect(node.getIndicesOfKnownLowerItems(0), [1]);
+      expect(node.getIndicesOfKnownLowerItems(1), isEmpty);
+    });
+
+    test(
+        'three item node updates known-less-than during subtree and root merge',
+        () {
+      final node = MergeSortNode.buildMergeSortTree([10, 20, 30]);
+
+      // First decision happens in the left subtree: compare indices 0 and 1.
+      node.selectIndex(0);
+      expect(node.getIndicesOfKnownLowerItems(0), [1]);
+      expect(node.getIndicesOfKnownLowerItems(1), isEmpty);
+      expect(node.getIndicesOfKnownLowerItems(2), isEmpty);
+
+      // Next decision merges left subtree winner against index 2.
+      node.selectIndex(0);
+      expect(node.getIndicesOfKnownLowerItems(0), unorderedEquals([1, 2]));
+      expect(node.getIndicesOfKnownLowerItems(1), isEmpty);
+      expect(node.getIndicesOfKnownLowerItems(2), isEmpty);
+    });
+
+    test('complete sort preserves knowledge relationships', () {
+      final node = MergeSortNode.buildMergeSortTree([10, 20, 30]);
+
+      node.selectIndex(0);
+      node.selectIndex(0);
+      node.selectIndex(2);
+
+      expect(node.isSorted, true);
+      expect(node.sortedIndicesList, [0, 2, 1]);
+      expect(node.getIndicesOfKnownLowerItems(0), unorderedEquals([2, 1]));
+      expect(node.getIndicesOfKnownLowerItems(2), [1]);
+      expect(node.getIndicesOfKnownLowerItems(1), isEmpty);
+    });
+
+    test('partially sorted tree exposes known relationships in sorted segment',
+        () {
+      final sortedNode = MergeSortNode.alreadySorted(
+        startIndex: 2,
+        endIndex: 3,
+        sortedIndicesList: [2, 3],
+      );
+      final root = MergeSortNode.buildPartiallySortedTree(2, [sortedNode]);
+
+      expect(root.getIndicesOfKnownLowerItems(2), [3]);
+      expect(root.getIndicesOfKnownLowerItems(3), isEmpty);
+      expect(root.getIndicesOfKnownLowerItems(0), isEmpty);
+      expect(root.getIndicesOfKnownLowerItems(1), isEmpty);
+    });
+  });
 
   group('MergeSortNode.alreadySorted', () {
     test('creates a valid sorted node with correct indices', () {

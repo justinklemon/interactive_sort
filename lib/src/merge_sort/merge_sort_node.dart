@@ -155,6 +155,61 @@ class MergeSortNode {
     }
   }
 
+  /// Returns indices that are already known to be less preferred than [index]
+  /// based on choices made so far in this node's merge process.
+  ///
+  /// This method only returns relationships that can be inferred from the
+  /// current partial state of the merge tree. If [index] has not participated
+  /// in enough comparisons yet, the returned list may be incomplete. 
+  ///
+  /// Important:
+  /// - The returned collection is not sorted and does not imply any ordering
+  ///   among the returned indices.
+  /// - The result should be treated as a set of known-lower indices.
+  ///
+  /// Behavior by state:
+  /// - If [index] is already in this node's `_sortedIndicesList`, all later
+  ///   indices in that list are considered known less-than.
+  /// - If this node still has children with remaining candidates, those
+  ///   candidates are included as known less-than for indices already placed in
+  ///   this node's sorted list.
+  /// - If [index] is not in this node's sorted list, the lookup recurses into
+  ///   the child subtree that contains [index].
+  ///
+  /// Throws an [ArgumentError] if [index] is outside this node's
+  /// `[startIndex, endIndex]` range.
+  Iterable<int> getIndicesOfKnownLowerItems(int index) {
+    // If the index is out of range, throw an error
+    if (index < startIndex || index > endIndex) {
+      throw ArgumentError('Index out of range');
+    }
+
+    // If the index is already in our sorted list, then we can assume that
+    // a) all indices that come after it in the sorted list are less than it, and
+    // b) all indicies that remain in either child node are also less than it.
+    List<int> knownLowerIndices = [];
+    final int indexPosition = _sortedIndicesList.indexOf(index);
+    if (indexPosition != -1) {
+      knownLowerIndices
+          .addAll(_sortedIndicesList.sublist(indexPosition + 1));
+      if (children != null) {
+        knownLowerIndices.addAll(children!.left._sortedIndicesList);
+        knownLowerIndices.addAll(children!.right._sortedIndicesList);
+      }
+    } else if (children != null) {
+      // If the index is not in our sorted list, then we determine which child node it will be in and recursively call getKnownLessThanIndices on that child node
+      if (index <= (startIndex + endIndex) ~/ 2) {
+        knownLowerIndices
+            .addAll(children!.left.getIndicesOfKnownLowerItems(index));
+      } else {
+        knownLowerIndices
+            .addAll(children!.right.getIndicesOfKnownLowerItems(index));
+      }
+    }
+
+    return knownLowerIndices;
+  }
+
   static MergeSortNode buildMergeSortTree(List<dynamic> list) {
     return _buildMergeSortTree(0, list.length - 1);
   }
