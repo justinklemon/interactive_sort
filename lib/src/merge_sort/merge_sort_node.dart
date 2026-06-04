@@ -210,7 +210,7 @@ class MergeSortNode {
     return knownLowerIndices;
   }
 
-  static MergeSortNode buildMergeSortTree(List<dynamic> list) {
+  static MergeSortNode buildMergeSortTree(Set<dynamic> list) {
     return _buildMergeSortTree(0, list.length - 1);
   }
 

@@ -15,9 +15,9 @@ class InteractiveMergeSort<T> implements InteractiveSort<T> {
   final Completer<List<T>> _sortCompleter = Completer<List<T>>();
   bool _disposed = false;
 
-  InteractiveMergeSort._(List<T> list, this._root,
+  InteractiveMergeSort._(Iterable<T> items, this._root,
       {Map<ChoicePair<T>, T>? choiceHistory})
-      : _list = List.unmodifiable(list),
+      : _list = List.unmodifiable(items),
         _choiceHistory = Map.from(choiceHistory ?? {}) {
     if (_root.isSorted) {
       _sortCompleter.complete(
@@ -28,14 +28,14 @@ class InteractiveMergeSort<T> implements InteractiveSort<T> {
     }
   }
 
-  factory InteractiveMergeSort(List<T> list,
+  factory InteractiveMergeSort(Set<T> list,
       {Map<ChoicePair<T>, T>? choiceHistory}) {
     MergeSortNode root = MergeSortNode.buildMergeSortTree(list);
     return InteractiveMergeSort._(list, root, choiceHistory: choiceHistory);
   }
 
   factory InteractiveMergeSort.partiallySorted(
-      List<T> unsortedList, List<List<T>> sortedLists,
+      Set<T> unsortedList, List<List<T>> sortedLists,
       {Map<ChoicePair<T>, T>? choiceHistory}) {
     List<T> combinedList = [...unsortedList];
     List<MergeSortNode> sortedNodes = [];

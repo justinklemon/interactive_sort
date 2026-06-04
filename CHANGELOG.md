@@ -72,3 +72,5 @@ Removed unecessary print statements
 ## 0.0.8
 Added a `getKnownLowerItems` function that returns a list of items that are known to be valued less than the 
 provided item. This can be used while sorting to check what items the current pair has already been compared against.
+## 0.0.9
+Refactored the API to accept a set of items to sort instead of a list, since sorting the same thing doesn't make sense.

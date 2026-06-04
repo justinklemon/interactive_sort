@@ -5,7 +5,7 @@ import 'package:interactive_sort/src/merge_sort/merge_sort_node.dart';
 void main() {
   group("Build merge sort tree", () {
     test('Empty list', () {
-      MergeSortNode node = MergeSortNode.buildMergeSortTree([]);
+      MergeSortNode node = MergeSortNode.buildMergeSortTree({});
       expect(node.isSorted, true);
       expect(node.sortedIndicesList, []);
       expect(node.currentChoicePair, null);
@@ -13,7 +13,7 @@ void main() {
     });
 
     test('Single item list', () {
-      MergeSortNode node = MergeSortNode.buildMergeSortTree([1]);
+      MergeSortNode node = MergeSortNode.buildMergeSortTree({1});
       expect(node.isSorted, true);
       expect(node.sortedIndicesList, [0]);
       expect(node.currentChoicePair, null);
@@ -21,7 +21,7 @@ void main() {
     });
 
     test('Two item list', () {
-      MergeSortNode node = MergeSortNode.buildMergeSortTree([1, 2]);
+      MergeSortNode node = MergeSortNode.buildMergeSortTree({1, 2});
       expect(node.isSorted, false);
       expect(() => node.sortedIndicesList, throwsStateError);
       expect(node.currentChoicePair, const ChoicePair(0, 1));
@@ -45,7 +45,7 @@ void main() {
     });
 
     test('Select index on two item node', () {
-      MergeSortNode node = MergeSortNode.buildMergeSortTree([1, 2]);
+      MergeSortNode node = MergeSortNode.buildMergeSortTree({1, 2});
       expect(node.isSorted, false);
       expect(node.currentChoicePair, const ChoicePair(0, 1));
       node.selectIndex(0);
@@ -60,7 +60,7 @@ void main() {
     });
 
     test('Select index on three item node', () {
-      MergeSortNode node = MergeSortNode.buildMergeSortTree([1, 2, 3]);
+      MergeSortNode node = MergeSortNode.buildMergeSortTree({1, 2, 3});
       expect(node.isSorted, false);
       expect(node.currentChoicePair, const ChoicePair(0, 1));
       node.selectIndex(0);
@@ -90,13 +90,13 @@ void main() {
       expect(node.currentChoicePair, null);
     });
     test('Two item node', () {
-      MergeSortNode node = MergeSortNode.buildMergeSortTree([1, 2]);
+      MergeSortNode node = MergeSortNode.buildMergeSortTree({1, 2});
       expect(node.currentChoicePair, const ChoicePair(0, 1));
       node.selectIndex(0);
       expect(node.currentChoicePair, null);
     });
     test('Three item node', () {
-      MergeSortNode node = MergeSortNode.buildMergeSortTree([1, 2, 3]);
+      MergeSortNode node = MergeSortNode.buildMergeSortTree({1, 2, 3});
       expect(node.currentChoicePair, const ChoicePair(0, 1));
       expect(node.currentChoicePair, const ChoicePair(0, 1));
       node.selectIndex(0);
@@ -116,13 +116,13 @@ void main() {
       expect(node.isSorted, true);
     });
     test('Two item node', () {
-      MergeSortNode node = MergeSortNode.buildMergeSortTree([1, 2]);
+      MergeSortNode node = MergeSortNode.buildMergeSortTree({1, 2});
       expect(node.isSorted, false);
       node.selectIndex(0);
       expect(node.isSorted, true);
     });
     test('Three item node', () {
-      MergeSortNode node = MergeSortNode.buildMergeSortTree([1, 2, 3]);
+      MergeSortNode node = MergeSortNode.buildMergeSortTree({1, 2, 3});
       expect(node.isSorted, false);
       node.selectIndex(0);
       expect(node.isSorted, false);
@@ -141,13 +141,13 @@ void main() {
       expect(node.sortedIndicesList, [0]);
     });
     test('Two item node', () {
-      MergeSortNode node = MergeSortNode.buildMergeSortTree([1, 2]);
+      MergeSortNode node = MergeSortNode.buildMergeSortTree({1, 2});
       expect(() => node.sortedIndicesList, throwsStateError);
       node.selectIndex(0);
       expect(node.sortedIndicesList, [0, 1]);
     });
     test('Three item node', () {
-      MergeSortNode node = MergeSortNode.buildMergeSortTree([1, 2, 3]);
+      MergeSortNode node = MergeSortNode.buildMergeSortTree({1, 2, 3});
       expect(() => node.sortedIndicesList, throwsStateError);
       node.selectIndex(0);
       expect(() => node.sortedIndicesList, throwsStateError);
@@ -166,41 +166,41 @@ void main() {
       expect(node.maxChoicesLeft, 0);
     });
     test('Two item node', () {
-      MergeSortNode node = MergeSortNode.buildMergeSortTree([1, 2]);
+      MergeSortNode node = MergeSortNode.buildMergeSortTree({1, 2});
       expect(node.maxChoicesLeft, 1);
     });
     test('Three item node', () {
-      MergeSortNode node = MergeSortNode.buildMergeSortTree([1, 2, 3]);
+      MergeSortNode node = MergeSortNode.buildMergeSortTree({1, 2, 3});
       expect(node.maxChoicesLeft, 3);
     });
     test('Four item node', () {
-      MergeSortNode node = MergeSortNode.buildMergeSortTree([1, 2, 3, 4]);
+      MergeSortNode node = MergeSortNode.buildMergeSortTree({1, 2, 3, 4});
       expect(node.maxChoicesLeft, 5);
     });
     test('Five item node', () {
-      MergeSortNode node = MergeSortNode.buildMergeSortTree([1, 2, 3, 4, 5]);
+      MergeSortNode node = MergeSortNode.buildMergeSortTree({1, 2, 3, 4, 5});
       expect(node.maxChoicesLeft, 8);
     });
     test('Six item node', () {
-      MergeSortNode node = MergeSortNode.buildMergeSortTree([1, 2, 3, 4, 5, 6]);
+      MergeSortNode node = MergeSortNode.buildMergeSortTree({1, 2, 3, 4, 5, 6});
       expect(node.maxChoicesLeft, 11);
     });
     test('Seven item node', () {
       MergeSortNode node =
-          MergeSortNode.buildMergeSortTree([1, 2, 3, 4, 5, 6, 7]);
+          MergeSortNode.buildMergeSortTree({1, 2, 3, 4, 5, 6, 7});
       expect(node.maxChoicesLeft, 14);
     });
   });
 
   group('maxChoicesLeft updates as choices are made', () {
     test('Two item node', () {
-      MergeSortNode node = MergeSortNode.buildMergeSortTree([1, 2]);
+      MergeSortNode node = MergeSortNode.buildMergeSortTree({1, 2});
       expect(node.maxChoicesLeft, 1);
       node.selectIndex(0);
       expect(node.maxChoicesLeft, 0);
     });
     test('Three item node, pick left, then right', () {
-      MergeSortNode node = MergeSortNode.buildMergeSortTree([1, 2, 3]);
+      MergeSortNode node = MergeSortNode.buildMergeSortTree({1, 2, 3});
       expect(node.maxChoicesLeft, 3);
       node.selectIndex(0);
       expect(node.maxChoicesLeft, 2);
@@ -209,7 +209,7 @@ void main() {
     });
 
     test('Three item node, pick left every time', () {
-      MergeSortNode node = MergeSortNode.buildMergeSortTree([1, 2, 3]);
+      MergeSortNode node = MergeSortNode.buildMergeSortTree({1, 2, 3});
       expect(node.maxChoicesLeft, 3);
       node.selectIndex(0);
       expect(node.maxChoicesLeft, 2);
@@ -219,7 +219,7 @@ void main() {
       expect(node.maxChoicesLeft, 0);
     });
     test('Four item node, pick left every time', () {
-      MergeSortNode node = MergeSortNode.buildMergeSortTree([1, 2, 3, 4]);
+      MergeSortNode node = MergeSortNode.buildMergeSortTree({1, 2, 3, 4});
       expect(node.maxChoicesLeft, 5);
       node.selectIndex(0);
       expect(node.maxChoicesLeft, 4);
@@ -231,7 +231,7 @@ void main() {
       expect(node.maxChoicesLeft, 0);
     });
     test('Four item node, pick longest path', () {
-      MergeSortNode node = MergeSortNode.buildMergeSortTree([1, 2, 3, 4]);
+      MergeSortNode node = MergeSortNode.buildMergeSortTree({1, 2, 3, 4});
       expect(node.maxChoicesLeft, 5);
       node.selectIndex(0);
       expect(node.maxChoicesLeft, 4);
@@ -245,7 +245,7 @@ void main() {
       expect(node.maxChoicesLeft, 0);
     });
     test('Five item node with more efficient choices', () {
-      MergeSortNode node = MergeSortNode.buildMergeSortTree([1, 2, 3, 4, 5]);
+      MergeSortNode node = MergeSortNode.buildMergeSortTree({1, 2, 3, 4, 5});
       expect(node.maxChoicesLeft, 8);
       node.selectIndex(0);
       expect(node.maxChoicesLeft, 7);
@@ -259,7 +259,7 @@ void main() {
       expect(node.maxChoicesLeft, 0);
     });
     test('Five item node with less efficient choices', () {
-      MergeSortNode node = MergeSortNode.buildMergeSortTree([1, 2, 3, 4, 5]);
+      MergeSortNode node = MergeSortNode.buildMergeSortTree({1, 2, 3, 4, 5});
       expect(node.maxChoicesLeft, 8);
       node.selectIndex(0);
       expect(node.maxChoicesLeft, 7);
@@ -282,7 +282,7 @@ void main() {
 
   group('getKnownLessThanIndices', () {
     test('throws ArgumentError for out-of-range index', () {
-      final node = MergeSortNode.buildMergeSortTree([1, 2, 3]);
+      final node = MergeSortNode.buildMergeSortTree({1, 2, 3});
       expect(() => node.getIndicesOfKnownLowerItems(-1), throwsArgumentError);
       expect(() => node.getIndicesOfKnownLowerItems(3), throwsArgumentError);
     });
@@ -293,13 +293,13 @@ void main() {
     });
 
     test('two item node returns no knowledge before any selection', () {
-      final node = MergeSortNode.buildMergeSortTree([1, 2]);
+      final node = MergeSortNode.buildMergeSortTree({1, 2});
       expect(node.getIndicesOfKnownLowerItems(0), isEmpty);
       expect(node.getIndicesOfKnownLowerItems(1), isEmpty);
     });
 
     test('two item node returns expected knowledge after selection', () {
-      final node = MergeSortNode.buildMergeSortTree([1, 2]);
+      final node = MergeSortNode.buildMergeSortTree({1, 2});
       node.selectIndex(0);
 
       expect(node.getIndicesOfKnownLowerItems(0), [1]);
@@ -309,7 +309,7 @@ void main() {
     test(
         'three item node updates known-less-than during subtree and root merge',
         () {
-      final node = MergeSortNode.buildMergeSortTree([10, 20, 30]);
+      final node = MergeSortNode.buildMergeSortTree({10, 20, 30});
 
       // First decision happens in the left subtree: compare indices 0 and 1.
       node.selectIndex(0);
@@ -325,7 +325,7 @@ void main() {
     });
 
     test('complete sort preserves knowledge relationships', () {
-      final node = MergeSortNode.buildMergeSortTree([10, 20, 30]);
+      final node = MergeSortNode.buildMergeSortTree({10, 20, 30});
 
       node.selectIndex(0);
       node.selectIndex(0);

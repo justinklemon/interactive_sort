@@ -1,10 +1,10 @@
-Have you ever wished you could easily sort through a list of objects based on how you feel? Then this is the package for you!
+Have you ever wished you could easily sort through a set of objects based on how you feel? Then this is the package for you!
 
 ## Features
 
-- This package allows you to sort through a list of objects based on user preference.
+- This package allows you to sort through a set of objects based on user preference.
 - Currently, it uses the merge sort algorithim although others may be implemented later.
-- Simply provide the sorter with a list of items, then it will provide you with two options at a time until the list has been sorted.
+- Simply provide the sorter with a set of items, then it will provide you with two options at a time until the items have been sorted.
 
 ## Getting started
 
@@ -34,8 +34,8 @@ Example:
 
 ```dart
 // Create sorter
-final List<int> list = [3, 1, 4, 2];
-final sorter = InteractiveSort<int>.mergeSort(list);
+final Set<int> toSort = {3, 1, 4, 2};
+final sorter = InteractiveSort<int>.mergeSort(toSort);
 
 // Here is where you would actually present the items to the user and let them pick.
 sorter.choicePairStream.listen(
